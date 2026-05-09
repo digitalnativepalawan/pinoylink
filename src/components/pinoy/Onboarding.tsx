@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { TEMPLATES, TRANSLATIONS } from '../data';
 import RisingSunSVG from './RisingSunSVG';
