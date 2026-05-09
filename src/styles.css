@@ -137,8 +137,117 @@
     border-color: var(--color-border);
   }
 
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+  :root {
+    --ph-blue: #0038A8;
+    --ph-red: #CE1126;
+    --ph-gold: #FCD116;
+    --ph-white: #FFFFFF;
   }
+
+  html, body {
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* Premium utility classes for Pinoy Digital app */
+.surface-1 { background-color: #111111; }
+.surface-2 { background-color: #1a1a1a; }
+.surface-3 { background-color: #242424; }
+.bg-surface-1 { background-color: #111111; }
+.bg-surface-2 { background-color: #1a1a1a; }
+.bg-surface-3 { background-color: #242424; }
+
+.border-subtle { border-color: rgba(255, 255, 255, 0.07); }
+.border-visible { border-color: rgba(255, 255, 255, 0.14); }
+
+.text-secondary { color: rgba(255, 255, 255, 0.55); }
+.text-muted { color: rgba(255, 255, 255, 0.25); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-btn-sim {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Template backgrounds */
+.bg-watawat {
+  background: linear-gradient(135deg, #001f5b 0%, #001f5b 45%, #b21020 55%, #b21020 100%);
+}
+.bg-dagat { background: linear-gradient(180deg, #020617 0%, #0f766e 100%); }
+.bg-artista {
+  background: radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 20% 80%, rgba(219, 39, 119, 0.3) 0%, transparent 50%),
+              #09090b;
+}
+.bg-trabaho {
+  background-color: #0f172a;
+  background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.bg-kainan { background: linear-gradient(135deg, #1c0a00 0%, #c2410c 100%); }
+.bg-gabi {
+  background-color: #000000;
+  background-image: radial-gradient(rgba(255,255,255,0.15) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+.bg-bukid {
+  background-color: #0a1f12;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(34, 197, 94, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 30%, rgba(20, 83, 45, 0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 90%, rgba(5, 46, 22, 0.85) 0%, transparent 60%),
+    linear-gradient(160deg, #14532d 0%, #052e16 50%, #0a1f12 100%);
+}
+.bg-fiesta {
+  background-color: #ec4899;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(250, 204, 21, 0.35) 0%, transparent 30%),
+    radial-gradient(circle at 85% 70%, rgba(34, 211, 238, 0.4) 0%, transparent 35%),
+    radial-gradient(circle at 50% 100%, rgba(124, 58, 237, 0.5) 0%, transparent 50%),
+    linear-gradient(135deg, #f472b6 0%, #ec4899 50%, #be185d 100%);
+}
+.bg-tisa {
+  background-color: #f5f1e8;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(30, 41, 59, 0.06) 1px, transparent 0),
+    linear-gradient(180deg, #faf6ec 0%, #efe8d8 100%);
+  background-size: 18px 18px, 100% 100%;
+}
+.bg-habi {
+  background-color: #5b2a14;
+  background-image:
+    radial-gradient(ellipse at 30% 25%, rgba(254, 215, 170, 0.45) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 80%, rgba(124, 45, 18, 0.7) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(217, 119, 6, 0.25) 0%, transparent 60%),
+    linear-gradient(150deg, #92400e 0%, #5b2a14 60%, #1c0a00 100%);
+}
+.bg-buko {
+  background-color: #d9f99d;
+  background-image:
+    radial-gradient(ellipse at 25% 15%, rgba(132, 204, 22, 0.55) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(54, 83, 20, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 60% 40%, rgba(247, 254, 231, 0.6) 0%, transparent 40%),
+    linear-gradient(160deg, #ecfccb 0%, #d9f99d 50%, #bef264 100%);
 }
