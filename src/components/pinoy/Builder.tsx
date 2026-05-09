@@ -1275,7 +1275,7 @@ export default function Builder({
               </p>
 
               {/* Horizontal scroll row of thumbnails (72x72) */}
-              <div className="flex gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar">
+              <div className="flex flex-wrap gap-3 pb-2 pt-1">
                 {TEMPLATES.map((tpl) => {
                   const isSelected = selectedTemplate === tpl.id;
 
@@ -1325,7 +1325,7 @@ export default function Builder({
               </p>
 
               {/* Scrollable pill row of 16 colors */}
-              <div className="flex gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
+              <div className="flex flex-wrap gap-2 pb-2 pt-1">
                 {ACCENT_COLORS.map((swatch) => {
                   const isSelected = selectedAccentHex.toLowerCase() === swatch.hex.toLowerCase();
 
