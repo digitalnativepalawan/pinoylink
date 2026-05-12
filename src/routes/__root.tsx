@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Pinoy.Digital" },
+      { name: "description", content: "link in Bio for Filipinos" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Pinoy.Digital" },
+      { property: "og:description", content: "link in Bio for Filipinos" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Pinoy.Digital" },
+      { name: "twitter:description", content: "link in Bio for Filipinos" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/T9Th5uPVO0aXJIb4F3X0QFtM7K13/social-images/social-1778579518880-2.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/T9Th5uPVO0aXJIb4F3X0QFtM7K13/social-images/social-1778579518880-2.webp" },
     ],
     links: [
       {
