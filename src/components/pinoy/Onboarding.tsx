@@ -233,7 +233,7 @@ export default function Onboarding({
               
               <div className="relative flex items-center bg-surface-1 rounded-xl border border-visible focus-within:border-[#FCD116] transition-all p-1.5 pl-3">
                 <span className="text-xs font-mono font-semibold text-white/40 select-none">
-                  pinoy.lovable.app/
+                  link.merqato.digital/
                 </span>
                 <input
                   type="text"
@@ -458,7 +458,7 @@ export default function Onboarding({
 
       {/* Persistent Bottom Step Indicator Helper */}
       <div className="pt-2 text-center border-t border-white/5 flex items-center justify-between text-xs text-white/30">
-        <span>pinoy.lovable.app © 2025</span>
+        <span>link.merqato.digital © 2025</span>
         <span className="font-mono">🇵🇭 First-class platform</span>
       </div>
 

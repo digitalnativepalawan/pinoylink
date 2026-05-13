@@ -723,12 +723,12 @@ export default function Builder({
 
                   <div className="bg-white rounded-xl p-3 flex flex-col items-center gap-2">
                     <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=4&data=${encodeURIComponent('https://pinoy.lovable.app/' + (handle || 'mariasantos'))}`}
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=4&data=${encodeURIComponent('https://link.merqato.digital/' + (handle || 'mariasantos'))}`}
                       alt="QR for your bio link"
                       className="w-40 h-40 rounded"
                     />
                     <div className="text-[10px] font-mono text-black/60 text-center">
-                      pinoy.lovable.app/<span className="font-bold text-black">{handle || 'mariasantos'}</span>
+                      link.merqato.digital/<span className="font-bold text-black">{handle || 'mariasantos'}</span>
                     </div>
                   </div>
 
@@ -742,7 +742,7 @@ export default function Builder({
                     </button>
                     <button
                       type="button"
-                      onClick={() => { navigator.clipboard?.writeText(`https://pinoy.lovable.app/${handle || 'mariasantos'}`); triggerToast('URL copied!'); }}
+                      onClick={() => { navigator.clipboard?.writeText(`https://link.merqato.digital/${handle || 'mariasantos'}`); triggerToast('URL copied!'); }}
                       className="bg-[#FCD116] text-black text-[10px] py-2 rounded font-mono font-bold cursor-pointer hover:bg-white transition-colors"
                     >
                       Copy URL
@@ -1701,7 +1701,7 @@ export default function Builder({
                 <div className="flex items-center gap-1.5 bg-black/60 px-2.5 py-1 rounded-full border border-white/10 max-w-[220px]">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
                   <span className="text-[10px] font-mono font-bold text-white/90 truncate">
-                    pinoy.lovable.app/{handle || 'mariasantos'}
+                    link.merqato.digital/{handle || 'mariasantos'}
                   </span>
                 </div>
 
@@ -1709,7 +1709,7 @@ export default function Builder({
                 <button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard?.writeText(`https://pinoy.lovable.app/${handle || 'mariasantos'}`);
+                    navigator.clipboard?.writeText(`https://link.merqato.digital/${handle || 'mariasantos'}`);
                     triggerToast("Link copied to clipboard!");
                   }}
                   className="bg-white/10 hover:bg-white text-white hover:text-black transition-colors p-1.5 rounded-full text-xs flex items-center gap-1 cursor-pointer font-mono px-2"
@@ -1887,7 +1887,7 @@ export default function Builder({
 
                 {/* FOOTER */}
                 <div className="pt-4 pb-8 text-center text-[10px] text-white/30 font-mono">
-                  {t.poweredBy} <span className="font-bold text-white/60">pinoy.lovable.app</span> 🇵🇭
+                  {t.poweredBy} <span className="font-bold text-white/60">link.merqato.digital</span> 🇵🇭
                 </div>
 
               </div>
