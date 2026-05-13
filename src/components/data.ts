@@ -255,6 +255,8 @@ export const INITIAL_LINKS: LinkItem[] = [
   }
 ];
 
+import { BASE_HOST } from '@/lib/config';
+
 export const TRANSLATIONS = {
   en: {
     getStarted: "Get started — libre!",
@@ -265,7 +267,7 @@ export const TRANSLATIONS = {
     claimHeadline: "Claim your link",
     available: "Available!",
     taken: "Taken",
-    claimBtn: "Claim link.merqato.digital/",
+    claimBtn: `Claim ${BASE_HOST}/`,
     pickTemplate: "Pick your template",
     fullName: "Full name",
     sendPayment: "Send me a payment",
@@ -307,7 +309,7 @@ export const TRANSLATIONS = {
     claimHeadline: "I-claim ang iyong link",
     available: "Pwede pa!",
     taken: "Ginamit na",
-    claimBtn: "I-claim ang link.merqato.digital/",
+    claimBtn: `I-claim ang ${BASE_HOST}/`,
     pickTemplate: "Piliin ang iyong template",
     fullName: "Buong pangalan",
     sendPayment: "Magpadala ng bayad",

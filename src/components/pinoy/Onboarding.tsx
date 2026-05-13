@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { TEMPLATES, TRANSLATIONS } from '../data';
+import { BASE_HOST } from '@/lib/config';
 import RisingSunSVG from './RisingSunSVG';
 import { Check, X, Loader2, ArrowRight, Sparkles, Globe, User, Mail } from 'lucide-react';
 
@@ -233,7 +234,7 @@ export default function Onboarding({
               
               <div className="relative flex items-center bg-surface-1 rounded-xl border border-visible focus-within:border-[#FCD116] transition-all p-1.5 pl-3">
                 <span className="text-xs font-mono font-semibold text-white/40 select-none">
-                  link.merqato.digital/
+                  {BASE_HOST}/
                 </span>
                 <input
                   type="text"
@@ -458,7 +459,7 @@ export default function Onboarding({
 
       {/* Persistent Bottom Step Indicator Helper */}
       <div className="pt-2 text-center border-t border-white/5 flex items-center justify-between text-xs text-white/30">
-        <span>link.merqato.digital © 2025</span>
+        <span>{BASE_HOST} © 2025</span>
         <span className="font-mono">🇵🇭 First-class platform</span>
       </div>
 
