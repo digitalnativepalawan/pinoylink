@@ -2,6 +2,7 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { BASE_HOST } from '@/lib/config';
 import { TEMPLATES, SOCIAL_ICONS } from '@/components/data';
 import SocialBrandIcon from '@/components/pinoy/SocialBrandIcon';
 import DynamicLucideIcon from '@/components/pinoy/DynamicLucideIcon';
@@ -34,11 +35,11 @@ export const Route = createFileRoute('/$handle')({
   },
   head: ({ loaderData }) => {
     if (!loaderData || loaderData.notFound) {
-      return { meta: [{ title: `link.merqato.digital/${loaderData?.handle ?? ''}` }] };
+      return { meta: [{ title: `${BASE_HOST}/${loaderData?.handle ?? ''}` }] };
     }
     const { profile, handle } = loaderData;
-    const title = `${profile.full_name} — link.merqato.digital/${handle}`;
-    const desc = profile.bio || `${profile.full_name} on link.merqato.digital`;
+    const title = `${profile.full_name} — ${BASE_HOST}/${handle}`;
+    const desc = profile.bio || `${profile.full_name} on ${BASE_HOST}`;
     const meta = [
       { title },
       { name: 'description', content: desc },
@@ -63,13 +64,13 @@ function NotFoundView({ handle }: { handle: string }) {
           This link doesn't exist yet
         </h1>
         <p className="text-white/60 text-sm">
-          link.merqato.digital/<span className="text-white">{handle}</span> is available.
+          {BASE_HOST}/<span className="text-white">{handle}</span> is available.
         </p>
         <Link
           to="/"
           className="inline-block px-6 py-3 rounded-full bg-[#FCD116] text-black font-semibold hover:opacity-90 transition"
         >
-          Claim link.merqato.digital/{handle}
+          Claim {BASE_HOST}/{handle}
         </Link>
       </div>
     </div>
@@ -199,7 +200,7 @@ function PublicProfilePage() {
         )}
 
         <div className="mt-10 text-xs text-white/40">
-          Powered by <span className="text-white/70">link.merqato.digital</span>
+          Powered by <span className="text-white/70">{BASE_HOST}</span>
         </div>
       </div>
     </div>
