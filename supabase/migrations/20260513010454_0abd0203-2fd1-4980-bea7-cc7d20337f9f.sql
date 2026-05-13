@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.check_handle_available(text) TO anon, authenticated;

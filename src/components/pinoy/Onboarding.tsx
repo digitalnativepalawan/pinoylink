@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { TEMPLATES, TRANSLATIONS } from '../data';
 import RisingSunSVG from './RisingSunSVG';
 import { Check, X, Loader2, ArrowRight, Sparkles, Globe, User, Mail } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingProps {
   lang: 'en' | 'tl';
@@ -59,18 +60,14 @@ export default function Onboarding({
       return;
     }
     setIsChecking(true);
-    // Simulate server response after debounce
-    const checkTimer = setTimeout(() => {
-      const takenList = ['admin', 'pinoy', 'bayan', 'root', 'help', 'mabuhay'];
-      if (takenList.includes(debouncedHandle.toLowerCase().trim())) {
-        setHandleStatus('taken');
-      } else {
-        setHandleStatus('available');
-      }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('check_handle_available', { handle: debouncedHandle.trim() });
+      if (cancelled) return;
+      setHandleStatus(error || !data ? 'taken' : 'available');
       setIsChecking(false);
-    }, 400);
-
-    return () => clearTimeout(checkTimer);
+    })();
+    return () => { cancelled = true; };
   }, [debouncedHandle]);
 
   return (
