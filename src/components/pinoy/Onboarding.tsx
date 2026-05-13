@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { TEMPLATES, TRANSLATIONS } from '../data';
 import RisingSunSVG from './RisingSunSVG';
 import { Check, X, Loader2, ArrowRight, Sparkles, Globe, User, Mail } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingProps {
   lang: 'en' | 'tl';
