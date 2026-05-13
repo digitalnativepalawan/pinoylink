@@ -14,13 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      links: {
+        Row: {
+          created_at: string | null
+          custom_icon: string | null
+          enabled: boolean | null
+          icon_color: string | null
+          id: string
+          profile_id: string
+          sort_order: number | null
+          title_en: string
+          title_tl: string | null
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_icon?: string | null
+          enabled?: boolean | null
+          icon_color?: string | null
+          id?: string
+          profile_id: string
+          sort_order?: number | null
+          title_en: string
+          title_tl?: string | null
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_icon?: string | null
+          enabled?: boolean | null
+          icon_color?: string | null
+          id?: string
+          profile_id?: string
+          sort_order?: number | null
+          title_en?: string
+          title_tl?: string | null
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "links_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_views: {
+        Row: {
+          created_at: string | null
+          id: string
+          link_id: string | null
+          profile_id: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link_id?: string | null
+          profile_id: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link_id?: string | null
+          profile_id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_views_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_buttons: {
+        Row: {
+          custom_label: string | null
+          enabled: boolean | null
+          id: string
+          profile_id: string
+          provider: string
+          qr_image_url: string | null
+        }
+        Insert: {
+          custom_label?: string | null
+          enabled?: boolean | null
+          id?: string
+          profile_id: string
+          provider: string
+          qr_image_url?: string | null
+        }
+        Update: {
+          custom_label?: string | null
+          enabled?: boolean | null
+          id?: string
+          profile_id?: string
+          provider?: string
+          qr_image_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_buttons_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          accent_color: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          handle: string
+          id: string
+          is_pro: boolean | null
+          location: string | null
+          mobile: string | null
+          selected_template: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          handle: string
+          id: string
+          is_pro?: boolean | null
+          location?: string | null
+          mobile?: string | null
+          selected_template?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          handle?: string
+          id?: string
+          is_pro?: boolean | null
+          location?: string | null
+          mobile?: string | null
+          selected_template?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      social_icons: {
+        Row: {
+          active: boolean | null
+          icon_id: string
+          id: string
+          profile_id: string
+          sort_order: number | null
+          url: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          icon_id: string
+          id?: string
+          profile_id: string
+          sort_order?: number | null
+          url?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          icon_id?: string
+          id?: string
+          profile_id?: string
+          sort_order?: number | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_icons_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_handle_available: { Args: { handle: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
