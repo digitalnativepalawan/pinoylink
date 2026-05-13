@@ -60,18 +60,14 @@ export default function Onboarding({
       return;
     }
     setIsChecking(true);
-    // Simulate server response after debounce
-    const checkTimer = setTimeout(() => {
-      const takenList = ['admin', 'pinoy', 'bayan', 'root', 'help', 'mabuhay'];
-      if (takenList.includes(debouncedHandle.toLowerCase().trim())) {
-        setHandleStatus('taken');
-      } else {
-        setHandleStatus('available');
-      }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('check_handle_available', { handle: debouncedHandle.trim() });
+      if (cancelled) return;
+      setHandleStatus(error || !data ? 'taken' : 'available');
       setIsChecking(false);
-    }, 400);
-
-    return () => clearTimeout(checkTimer);
+    })();
+    return () => { cancelled = true; };
   }, [debouncedHandle]);
 
   return (
