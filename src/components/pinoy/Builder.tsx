@@ -1,5 +1,14 @@
 // @ts-nocheck
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useAuthReady } from '@/hooks/useAuthReady';
+import {
+  updateProfile,
+  uploadAvatar,
+  saveLinks,
+  saveSocials,
+  savePayments,
+  loadProfileBundle,
+} from '@/lib/profileApi';
 import { 
   TEMPLATES, 
   SOCIAL_ICONS, 
