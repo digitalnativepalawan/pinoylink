@@ -9,6 +9,13 @@ export interface TemplateItem {
   btnBgColor: string;
   btnBorder: string;
   fontDisplay: string;
+  // ── NEW: full theming fields ──────────────────────────────────────
+  accentColor: string;       // primary accent used for glow, footer, highlights
+  textColor: string;         // primary text on this bg
+  mutedColor: string;        // secondary/muted text
+  linkTextColor: string;     // text color inside link buttons
+  isLight: boolean;          // true for light-bg templates (tisa, buko)
+  category: 'dark' | 'light' | 'vibrant';
 }
 
 export const TEMPLATES: TemplateItem[] = [
@@ -22,7 +29,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'filled',
     btnBgColor: 'rgba(252, 209, 22, 0.15)',
     btnBorder: 'border border-[#FCD116]/60',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#FCD116',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.6)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'dagat',
@@ -34,7 +47,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'glass',
     btnBgColor: 'rgba(6, 182, 212, 0.1)',
     btnBorder: 'border border-cyan-400/25',
-    fontDisplay: 'DM Sans'
+    fontDisplay: 'DM Sans',
+    accentColor: '#06b6d4',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.58)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'artista',
@@ -46,7 +65,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'glass',
     btnBgColor: 'rgba(168, 85, 247, 0.18)',
     btnBorder: 'border border-purple-400/30',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#c084fc',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.62)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'vibrant',
   },
   {
     id: 'trabaho',
@@ -58,7 +83,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'outline',
     btnBgColor: 'transparent',
     btnBorder: 'border border-blue-400/30',
-    fontDisplay: 'DM Sans'
+    fontDisplay: 'DM Sans',
+    accentColor: '#60a5fa',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.5)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'kainan',
@@ -70,7 +101,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'filled',
     btnBgColor: 'rgba(234, 88, 12, 0.85)',
     btnBorder: 'border border-orange-400/20',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#fb923c',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.58)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'gabi',
@@ -82,7 +119,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'glass',
     btnBgColor: 'rgba(5, 5, 20, 0.75)',
     btnBorder: 'border border-indigo-400/18',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#818cf8',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.48)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'bukid',
@@ -94,7 +137,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'outline',
     btnBgColor: 'transparent',
     btnBorder: 'border border-emerald-400/45',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#4ade80',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.58)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'fiesta',
@@ -106,7 +155,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'pill',
     btnBgColor: 'rgba(124, 58, 237, 0.8)',
     btnBorder: 'border border-cyan-300/25',
-    fontDisplay: 'Bricolage Grotesque'
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#22d3ee',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.68)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'vibrant',
   },
   {
     id: 'tisa',
@@ -118,7 +173,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'filled',
     btnBgColor: '#1e293b',
     btnBorder: 'border-none',
-    fontDisplay: 'DM Sans'
+    fontDisplay: 'DM Sans',
+    accentColor: '#1e293b',
+    textColor: '#1e293b',
+    mutedColor: 'rgba(30,41,59,0.55)',
+    linkTextColor: '#ffffff',
+    isLight: true,
+    category: 'light',
   },
   {
     id: 'habi',
@@ -130,7 +191,13 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'glass',
     btnBgColor: 'rgba(40, 14, 0, 0.65)',
     btnBorder: 'border border-amber-400/25',
-    fontDisplay: 'DM Sans'
+    fontDisplay: 'DM Sans',
+    accentColor: '#fbbf24',
+    textColor: '#ffffff',
+    mutedColor: 'rgba(255,255,255,0.58)',
+    linkTextColor: '#ffffff',
+    isLight: false,
+    category: 'dark',
   },
   {
     id: 'buko',
@@ -142,8 +209,14 @@ export const TEMPLATES: TemplateItem[] = [
     btnStyle: 'pill',
     btnBgColor: '#15803d',
     btnBorder: 'border border-green-900/30',
-    fontDisplay: 'Bricolage Grotesque'
-  }
+    fontDisplay: 'Bricolage Grotesque',
+    accentColor: '#166534',
+    textColor: '#052e16',
+    mutedColor: 'rgba(5,46,22,0.58)',
+    linkTextColor: '#ffffff',
+    isLight: true,
+    category: 'light',
+  },
 ];
 
 export interface SocialIconItem {
@@ -187,7 +260,7 @@ export const SOCIAL_ICONS: SocialIconItem[] = [
   { id: 'carousell', name: 'Carousell', color: '#D2143A', row: 4, initialActive: false, urlPlaceholder: 'carousell.ph/u/maria', lucideIcon: 'Tag' },
   { id: 'gcashqr', name: 'Gcash QR', color: '#0038A8', row: 4, initialActive: false, urlPlaceholder: 'gcash.com/qr/maria', lucideIcon: 'QrCode' },
   { id: 'grabfood', name: 'GrabFood', color: '#00B14F', row: 4, initialActive: false, urlPlaceholder: 'food.grab.com/ph/...', lucideIcon: 'Utensils' },
-  { id: 'patreon', name: 'Patreon', color: '#FF424D', row: 4, initialActive: false, urlPlaceholder: 'patreon.com/mariasantos', lucideIcon: 'Heart' }
+  { id: 'patreon', name: 'Patreon', color: '#FF424D', row: 4, initialActive: false, urlPlaceholder: 'patreon.com/mariasantos', lucideIcon: 'Heart' },
 ];
 
 export interface AccentColorSwatch {
@@ -211,7 +284,7 @@ export const ACCENT_COLORS: AccentColorSwatch[] = [
   { name: 'Cyan', hex: '#06b6d4' },
   { name: 'Indigo', hex: '#4f46e5' },
   { name: 'Slate', hex: '#475569' },
-  { name: 'Pure White', hex: '#ffffff' }
+  { name: 'Pure White', hex: '#ffffff' },
 ];
 
 export interface LinkItem {
@@ -226,10 +299,10 @@ export interface LinkItem {
 }
 
 export const AVAILABLE_LINK_TYPES = [
-  'Regular URL', 'YouTube video', 'Spotify track/playlist', 'Instagram post', 
-  'TikTok video', 'PDF download', 'Email address', 'Phone number', 
-  'WhatsApp chat', 'Booking link', 'Menu PDF', 'Google Maps location', 
-  'Shopee store', 'Lazada store', 'Carousell listing'
+  'Regular URL', 'YouTube video', 'Spotify track/playlist', 'Instagram post',
+  'TikTok video', 'PDF download', 'Email address', 'Phone number',
+  'WhatsApp chat', 'Booking link', 'Menu PDF', 'Google Maps location',
+  'Shopee store', 'Lazada store', 'Carousell listing',
 ];
 
 export const INITIAL_LINKS: LinkItem[] = [
@@ -241,7 +314,7 @@ export const INITIAL_LINKS: LinkItem[] = [
     type: 'YouTube video',
     enabled: true,
     iconColor: '#FF0000',
-    customIcon: 'Youtube'
+    customIcon: 'Youtube',
   },
   {
     id: 'link-2',
@@ -251,8 +324,8 @@ export const INITIAL_LINKS: LinkItem[] = [
     type: 'Shopee store',
     enabled: true,
     iconColor: '#EE4D2D',
-    customIcon: 'ShoppingBag'
-  }
+    customIcon: 'ShoppingBag',
+  },
 ];
 
 export const TRANSLATIONS = {
@@ -296,7 +369,7 @@ export const TRANSLATIONS = {
     stepLabel: "Step",
     customIconLabel: "Choose Lucide Icon",
     placeholderLinkTitle: "Enter clear link description",
-    sampleBioLink: "Sample Bio Link"
+    sampleBioLink: "Sample Bio Link",
   },
   tl: {
     getStarted: "Magsimula na — libre!",
@@ -338,6 +411,6 @@ export const TRANSLATIONS = {
     stepLabel: "Hakbang",
     customIconLabel: "Pumili ng Lucide Icon",
     placeholderLinkTitle: "I-type ang malinaw na paglalarawan",
-    sampleBioLink: "Halimbawa ng Link sa Bio"
-  }
+    sampleBioLink: "Halimbawa ng Link sa Bio",
+  },
 };

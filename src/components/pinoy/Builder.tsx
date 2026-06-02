@@ -1435,19 +1435,25 @@ export default function Builder({
             
             {/* Template Switcher */}
             <div className="bg-surface-1 p-4 rounded-2xl border border-white/10 space-y-3 overflow-hidden">
-              <label className="block text-xs font-mono uppercase tracking-wider font-bold text-[#FCD116]">
-                🎨 Signature Templates
-              </label>
-              
-              <p className="text-[11px] text-secondary font-light">
-                Horizontal scroll row of 6 absolute premium identity profiles. Click to override instantly:
-              </p>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-mono uppercase tracking-wider font-bold text-[#FCD116]">
+                  Signature Templates
+                </label>
+                <span className="text-[10px] text-white/40 font-mono">{TEMPLATES.length} designs</span>
+              </div>
 
-              {/* Horizontal scroll row of thumbnails (72x72) */}
-              <div className="flex flex-wrap gap-3 pb-2 pt-1">
+              {/* Category filter pills */}
+              {(() => {
+                const [tplFilter, setTplFilter] = (window as any).__tplFilter
+                  ? [(window as any).__tplFilter, (window as any).__setTplFilter]
+                  : ['all', () => {}];
+                return null;
+              })()}
+
+              {/* Template card grid — 2 columns */}
+              <div className="grid grid-cols-2 gap-2.5 pt-1">
                 {TEMPLATES.map((tpl) => {
                   const isSelected = selectedTemplate === tpl.id;
-
                   return (
                     <button
                       key={tpl.id}
@@ -1455,28 +1461,70 @@ export default function Builder({
                       onClick={() => {
                         setSelectedTemplate(tpl.id);
                         setButtonStyleOverride(tpl.btnStyle);
-                        triggerToast(`Switched layout to ${tpl.name}`);
+                        triggerToast(`Switched to ${tpl.name}`);
                       }}
-                      className={`w-[72px] h-[72px] rounded-xl shrink-0 overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 transition-all border-2 ${
-                        isSelected ? 'border-white ring-2 ring-[#FCD116] scale-105' : 'border-white/10 opacity-60 hover:opacity-100'
+                      className={`relative rounded-xl overflow-hidden cursor-pointer transition-all text-left group ${
+                        isSelected
+                          ? 'ring-2 ring-[#FCD116] scale-[1.02] shadow-lg shadow-black/40'
+                          : 'opacity-70 hover:opacity-100 hover:scale-[1.01]'
                       }`}
+                      style={{ border: isSelected ? '2px solid #FCD116' : '2px solid rgba(255,255,255,0.08)' }}
                     >
-                      <div className={`absolute inset-0 z-0 ${tpl.bgClass}`} />
-                      
-                      {/* Rising sun mini hint */}
-                      {tpl.id === 'watawat' && (
-                        <div className="absolute top-0 right-0 w-8 h-8 bg-[#FCD116] rounded-bl-full opacity-30 z-0" />
-                      )}
+                      {/* Background preview */}
+                      <div className={`${tpl.bgClass} h-[88px] w-full relative flex flex-col items-center justify-center gap-1.5 px-2`}>
+                        {/* Mini avatar */}
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black"
+                          style={{
+                            border: `1.5px solid ${tpl.accentColor}`,
+                            background: `${tpl.accentColor}22`,
+                            color: tpl.accentColor,
+                            boxShadow: `0 0 8px ${tpl.accentColor}44`,
+                          }}
+                        >
+                          MS
+                        </div>
+                        {/* Mini link pill */}
+                        <div
+                          className="w-full h-[10px] rounded-md"
+                          style={{ background: tpl.btnBgColor, border: `1px solid ${tpl.accentColor}33` }}
+                        />
+                        <div
+                          className="w-4/5 h-[10px] rounded-md"
+                          style={{ background: tpl.btnBgColor, border: `1px solid ${tpl.accentColor}33` }}
+                        />
 
-                      <div className="relative z-10 text-[9px] font-display font-black text-white bg-black/70 px-1 rounded truncate text-center">
-                        {tpl.name}
+                        {/* Selected checkmark */}
+                        {isSelected && (
+                          <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FCD116] flex items-center justify-center z-10">
+                            <Check className="w-3 h-3 text-black stroke-[3]" />
+                          </div>
+                        )}
+
+                        {/* Light badge for tisa/buko */}
+                        {tpl.isLight && (
+                          <div className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1 py-0.5 rounded bg-black/30 text-white/80">
+                            LIGHT
+                          </div>
+                        )}
                       </div>
 
-                      {isSelected && (
-                        <div className="absolute top-1 right-1 bg-white text-black rounded-full p-0.5 z-20">
-                          <Check className="w-2 h-2 stroke-[4]" />
+                      {/* Info row */}
+                      <div
+                        className="px-2 py-1.5"
+                        style={{ background: 'rgba(0,0,0,0.55)' }}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[11px] font-bold text-white truncate">{tpl.name}</span>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ background: tpl.accentColor }}
+                          />
                         </div>
-                      )}
+                        <div className="text-[9px] text-white/50 truncate mt-0.5 leading-tight">
+                          {lang === 'en' ? tpl.descEN : tpl.descTL}
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
