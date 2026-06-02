@@ -20,7 +20,7 @@ interface OnboardingProps {
   setHandle: (handle: string) => void;
   selectedTemplate: string;
   setSelectedTemplate: (id: string) => void;
-  onFinish: () => void;
+  onFinish: () => Promise<void> | void;
 }
 
 export default function Onboarding({
@@ -46,6 +46,8 @@ export default function Onboarding({
   const [isChecking, setIsChecking] = useState(false);
   const [handleStatus, setHandleStatus] = useState<'idle' | 'available' | 'taken'>('available');
   const [debouncedHandle, setDebouncedHandle] = useState(handle);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -433,16 +435,41 @@ export default function Onboarding({
               </button>
 
               <button
-                onClick={() => {
-                  setStep(4);
-                  onFinish();
+                disabled={isPublishing}
+                onClick={async () => {
+                  setPublishError(null);
+                  setIsPublishing(true);
+                  try {
+                    await onFinish();
+                  } catch (err: any) {
+                    setPublishError(err?.message || 'Could not publish your link.');
+                  } finally {
+                    setIsPublishing(false);
+                  }
                 }}
-                className="flex-1 bg-white text-black hover:bg-[#FCD116] transition-all py-3 px-4 rounded-xl font-bold text-center text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl animate-bounce"
+                className={`flex-1 transition-all py-3 px-4 rounded-xl font-bold text-center text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl ${
+                  isPublishing ? 'bg-white/30 text-black/60 cursor-wait' : 'bg-white text-black hover:bg-[#FCD116]'
+                }`}
               >
-                <span>Continue to Builder</span>
-                <ArrowRight className="w-4 h-4 text-black" />
+                {isPublishing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Generating your link...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Publish my link</span>
+                    <ArrowRight className="w-4 h-4 text-black" />
+                  </>
+                )}
               </button>
             </div>
+
+            {publishError && (
+              <div className="text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">
+                {publishError}
+              </div>
+            )}
 
             <div className="text-[10px] text-center text-white/40 italic">
               ✨ Every option tailored specifically for rapid PH mobile consumption.
