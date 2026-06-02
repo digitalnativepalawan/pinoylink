@@ -1,47 +1,56 @@
-## Plan: Generate live short URL after onboarding
+## Problem
 
-### 1. Enable anonymous auth
-Call `supabase--configure_auth` to turn on anonymous sign-ins so a real `auth.uid()` exists when we insert the profile (required by RLS).
+The screenshot is the **Builder preview**, which is populated entirely from in-memory mock data (`INITIAL_LINKS`, `MS` initials, "Maria Santos", Palawan, the four social icons, the two yellow link cards). When the user visits their real short URL `link.merqato.digital/{handle}`, the public route (`src/routes/$handle.tsx`) queries Supabase and finds only the row written by `publishProfile`: `id`, `handle`, `full_name`, `email`, `mobile`, `selected_template`. No links, no socials, no payments, no bio, no avatar — so the page renders just the name. That matches exactly what the user is reporting.
 
-### 2. Migration: allow the QR code library
-Add `qrcode` (pure JS, ~20KB) via `bun add qrcode @types/qrcode`. No DB migration needed — schema already supports everything.
+`Builder.tsx` never calls Supabase. Everything the user edits (bio, location, avatar, links, socials, payments, theme, layout, fonts) lives only in React state and disappears the moment the page reloads.
 
-### 3. New file: `src/lib/publishProfile.ts`
-Helper used by the success step:
-```ts
-export async function publishProfile(input: {
-  fullName: string; email: string; mobile: string;
-  handle: string; selectedTemplate: string;
-}): Promise<{ url: string; profileId: string }>
-```
-Logic:
-- If no session, `supabase.auth.signInAnonymously()`.
-- `supabase.from('profiles').upsert({ id: user.id, handle, full_name, email, mobile, selected_template })`.
-- Return `{ url: \`https://link.merqato.digital/${handle}\`, profileId: user.id }`.
+## Goal
 
-### 4. New component: `src/components/pinoy/PublishedSuccess.tsx`
-Full-screen success step shown between onboarding and Builder:
-- Confetti-style hero with handle name
-- Big rendered short URL `link.merqato.digital/{handle}`
-- QR code (generated with `qrcode.toDataURL`)
-- Copy URL button (uses `navigator.clipboard`, shows "Copied!" toast)
-- Native Share button (uses `navigator.share` with fallback)
-- "Open my page" → opens `/{handle}` in new tab
-- "Continue to editor" → calls `onContinue()` to go to Builder
-- Matches Filipino-first dark aesthetic (Bricolage Grotesque, `#FCD116` accent, same `max-w-[480px]` mobile-first frame)
+Make the Builder a real editor: every change is saved to Supabase under the authenticated (anonymous) user's `profile_id`, so the public page reflects what they built.
 
-### 5. Edit `src/routes/index.tsx`
-Add `step === 4` = success screen, `step === 5` = Builder.
-- Step 3 → 4 transition calls `publishProfile(...)` (with loading state).
-- On error: stay on step 3, show inline error.
-- Success screen `onContinue` → `setStep(5)`.
+## Plan
 
-### 6. Edit `src/components/pinoy/Onboarding.tsx`
-Step 3 "Finish" button: switch from `onFinish()` to an async handler that calls `publishProfile` and only advances on success. Show spinner in button while publishing.
+### 1. New helper `src/lib/profileApi.ts`
+Thin wrappers around `supabase`, all scoped to the current `auth.uid()`:
+- `updateProfile(patch)` — updates `profiles` (bio, location, avatar_url, selected_template, accent_color, full_name).
+- `uploadAvatar(file)` → uploads to the existing `avatars` bucket under `{uid}/avatar.{ext}`, returns public URL, then calls `updateProfile`.
+- `saveLinks(links[])` — replace-all strategy: delete existing rows for `profile_id`, insert the current array with `sort_order`.
+- `saveSocials(socials[])` — same replace-all pattern on `social_icons`.
+- `savePayments(payments[])` — same on `payment_buttons`. Includes QR upload to the `qr-codes` bucket when a file is provided.
+- `loadProfileBundle(userId)` — fetches profile + links + socials + payments to hydrate the Builder on mount/reload.
 
-### Out of scope
-- Builder persistence (links/socials/payments saving) — separate task.
-- Email/password signup, login flow — anonymous-only per your choice.
-- Custom domain DNS — already connected.
+All writes are debounced by the caller (see step 3).
 
-Approve and I'll execute.
+### 2. Auth-ready gate
+Add a tiny `useAuthReady` hook (`src/hooks/useAuthReady.ts`) that waits for `supabase.auth.getSession()` to resolve, then exposes `{ userId, isReady }`. Builder won't issue any writes until `isReady && userId`. This avoids the known race where the session hasn't hydrated yet and RLS rejects the write.
+
+### 3. Wire Builder to persistence (surgical, no UI changes)
+Inside `src/components/pinoy/Builder.tsx`:
+- On mount, if `isReady`, call `loadProfileBundle(userId)` and hydrate the existing state setters (bio, location, avatarImage, links, activeSocials/socialUrls, payment fields, accent, template) from what's in the DB. If the DB has no rows yet (fresh signup), keep current defaults.
+- Wrap the existing setters' downstream effects with debounced auto-save (300–600ms) using a small `useDebouncedEffect`:
+  - profile-level fields → `updateProfile`
+  - `links` array → `saveLinks`
+  - `activeSocials` + `socialUrls` → `saveSocials`
+  - payment fields → `savePayments`
+- Avatar upload: when the file input fires, in addition to setting the local data URL preview, call `uploadAvatar(file)` and replace the preview with the returned public URL once it resolves.
+- Add a small `Saving… / Saved` indicator next to the existing top bar (single line, no layout change).
+
+No props or component signatures change. No routes change. No design tokens change.
+
+### 4. Public page is already correct
+`src/routes/$handle.tsx` already reads `profiles`, `links`, `social_icons`, `payment_buttons` and renders them. Once step 3 writes real rows, the public page will populate automatically — no edits needed there.
+
+### 5. Out of scope (call out, do not do now)
+- Template "design" tab fields beyond accent + selected_template (button style override, page font, wallpaper, color overrides, profile layout) — the DB doesn't have columns for these. We can add a `theme jsonb` column to `profiles` in a follow-up if you want full theme persistence. For now, the visible content (avatar, bio, links, socials, payments) will persist; the visual theme tweaks remain session-only.
+- Real account upgrade from anonymous → email (so the user doesn't lose their page if they clear storage). Worth doing soon but separate.
+
+## Files touched
+
+- new `src/lib/profileApi.ts`
+- new `src/hooks/useAuthReady.ts`
+- edit `src/components/pinoy/Builder.tsx` — add load-on-mount, debounced saves, avatar upload, "Saved" indicator. No structural / visual changes.
+
+## Confirm before I build
+
+1. OK to use the **replace-all** strategy for links/socials/payments (simplest, no ID tracking churn)?
+2. OK that visual theme tweaks (custom colors, wallpaper, font override, button style, layout) stay session-only for now, and I add a follow-up to introduce a `theme jsonb` column?
