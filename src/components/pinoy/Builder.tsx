@@ -484,6 +484,15 @@ export default function Builder({
         </div>
       )}
 
+      {/* Save indicator */}
+      {saveState !== 'idle' && (
+        <div className="fixed top-3 right-3 z-50 text-[10px] font-mono px-2 py-1 rounded-full border border-white/10 bg-black/70 backdrop-blur">
+          {saveState === 'saving' && <span className="text-white/70">Saving…</span>}
+          {saveState === 'saved' && <span className="text-emerald-400">✓ Saved</span>}
+          {saveState === 'error' && <span className="text-rose-400">⚠ Save failed</span>}
+        </div>
+      )}
+
       {/* TOP BAR */}
       <div className="flex items-center justify-between p-4 bg-surface-1 border-b border-white/10 sticky top-0 z-30">
         <div className="flex items-center gap-2">
