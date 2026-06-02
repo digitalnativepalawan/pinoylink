@@ -42,6 +42,9 @@ export default function Onboarding({
 }: OnboardingProps) {
   const t = TRANSLATIONS[lang];
 
+  // Template category filter
+  const [tplFilter, setTplFilter] = useState<'all' | 'dark' | 'light' | 'vibrant'>('all');
+
   // Live handle availability check state with debounce simulation
   const [isChecking, setIsChecking] = useState(false);
   const [handleStatus, setHandleStatus] = useState<'idle' | 'available' | 'taken'>('available');
@@ -335,7 +338,7 @@ export default function Onboarding({
         {/* STEP 3: Pick your template */}
         {step === 3 && (
           <div className="space-y-4 animate-fadeIn">
-            
+
             <div className="text-left space-y-1">
               <h2 className="text-xl font-display font-bold">{t.pickTemplate}</h2>
               <p className="text-xs text-secondary">
@@ -343,83 +346,125 @@ export default function Onboarding({
               </p>
             </div>
 
-            {/* 11 Templates in a 2-column scrollable grid */}
-            <div className="grid grid-cols-2 gap-3 pt-2 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
-              {TEMPLATES.map((tpl) => {
+            {/* Category filter pills */}
+            <div className="flex gap-1.5 flex-wrap">
+              {(['all', 'dark', 'light', 'vibrant'] as const).map((cat) => {
+                const counts = {
+                  all: TEMPLATES.length,
+                  dark: TEMPLATES.filter(t => t.category === 'dark').length,
+                  light: TEMPLATES.filter(t => t.category === 'light').length,
+                  vibrant: TEMPLATES.filter(t => t.category === 'vibrant').length,
+                };
+                const labels = { all: 'All', dark: '🌙 Dark', light: '☀️ Light', vibrant: '⚡ Vibrant' };
+                const isActive = tplFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setTplFilter(cat)}
+                    className="px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all"
+                    style={{
+                      background: isActive ? '#FCD116' : 'rgba(255,255,255,0.07)',
+                      color: isActive ? '#000' : 'rgba(255,255,255,0.55)',
+                      border: isActive ? '1px solid #FCD116' : '1px solid rgba(255,255,255,0.1)',
+                    }}
+                  >
+                    {labels[cat]} <span style={{ opacity: 0.6 }}>({counts[cat]})</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Filtered template grid */}
+            <div className="grid grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
+              {TEMPLATES.filter(tpl => tplFilter === 'all' || tpl.category === tplFilter).map((tpl) => {
                 const isSelected = selectedTemplate === tpl.id;
-                
                 return (
                   <button
                     key={tpl.id}
+                    type="button"
                     onClick={() => setSelectedTemplate(tpl.id)}
-                    className={`h-[165px] rounded-xl text-left relative p-3 flex flex-col justify-between overflow-hidden cursor-pointer transition-all border-2 ${
-                      isSelected ? 'border-white ring-4 ring-white/10 scale-[1.02]' : 'border-white/10 hover:border-white/30'
+                    className={`relative rounded-xl overflow-hidden cursor-pointer transition-all text-left ${
+                      isSelected
+                        ? 'ring-2 ring-[#FCD116] scale-[1.02] shadow-lg shadow-black/40'
+                        : 'opacity-70 hover:opacity-100 hover:scale-[1.01]'
                     }`}
+                    style={{ border: isSelected ? '2px solid #FCD116' : '2px solid rgba(255,255,255,0.08)' }}
                   >
-                    {/* Render exact realistic background preview */}
-                    <div className={`absolute inset-0 z-0 ${tpl.bgClass}`} />
-                    
-                    {/* Add SVG rising sun only to Watawat preview */}
-                    {tpl.id === 'watawat' && (
-                      <RisingSunSVG className="right-0 top-0 w-[120px] h-[120px]" opacity={0.25} />
-                    )}
+                    {/* Background preview */}
+                    <div className={`${tpl.bgClass} h-[96px] w-full relative flex flex-col items-center justify-center gap-1.5 px-2`}>
 
-                    {/* Selected Checkmark Badge */}
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 bg-white text-black rounded-full p-1 z-20 shadow-md">
-                        <Check className="w-2.5 h-2.5 stroke-[4]" />
-                      </div>
-                    )}
+                      {/* Watawat rising sun hint */}
+                      {tpl.id === 'watawat' && (
+                        <RisingSunSVG className="right-0 top-0 w-[80px] h-[80px]" opacity={0.2} />
+                      )}
 
-                    {/* Realistic Mini-Preview Header (Avatar + Mock Name) */}
-                    <div className="relative z-10 flex flex-col items-center pt-2 space-y-1.5 w-full">
-                      {/* Avatar Circle */}
-                      <div className={`w-8 h-8 rounded-full bg-[#2a2a2a] flex items-center justify-center text-[10px] font-bold text-white ${tpl.avatarRing}`}>
+                      {/* Mini avatar */}
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black z-10"
+                        style={{
+                          border: `1.5px solid ${tpl.accentColor}`,
+                          background: `${tpl.accentColor}22`,
+                          color: tpl.accentColor,
+                          boxShadow: `0 0 8px ${tpl.accentColor}44`,
+                        }}
+                      >
                         MS
                       </div>
 
-                      {/* Fake lines simulating profile */}
-                      <div className="w-16 h-2 rounded bg-white/90" />
-                      <div className="w-20 h-1 rounded bg-white/40" />
-
-                      {/* Fake Links Simulation */}
-                      <div className="w-full space-y-1 pt-1.5">
-                        <div 
-                          className="h-3 rounded w-full"
+                      {/* Mini link pills */}
+                      <div className="w-full space-y-1 px-1 z-10">
+                        <div
+                          className="h-[9px] rounded-md w-full"
                           style={{
-                            backgroundColor: tpl.btnStyle === 'outline' ? 'transparent' : tpl.btnBgColor,
-                            border: tpl.btnStyle === 'outline' ? '1px solid rgba(255,255,255,0.4)' : 'none',
-                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '3px'
+                            background: tpl.btnBgColor,
+                            border: `1px solid ${tpl.accentColor}33`,
+                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '4px',
                           }}
                         />
-                        <div 
-                          className="h-3 rounded w-full opacity-80"
+                        <div
+                          className="h-[9px] rounded-md w-4/5 mx-auto"
                           style={{
-                            backgroundColor: tpl.btnStyle === 'outline' ? 'transparent' : tpl.btnBgColor,
-                            border: tpl.btnStyle === 'outline' ? '1px solid rgba(255,255,255,0.4)' : 'none',
-                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '3px'
+                            background: tpl.btnBgColor,
+                            border: `1px solid ${tpl.accentColor}33`,
+                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '4px',
                           }}
                         />
                       </div>
 
-                      {/* Fake Social Dots */}
-                      <div className="flex items-center justify-center gap-1 pt-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                      {/* Selected checkmark */}
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FCD116] flex items-center justify-center z-20">
+                          <Check className="w-3 h-3 text-black stroke-[3]" />
+                        </div>
+                      )}
+
+                      {/* Category badge */}
+                      <div
+                        className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10"
+                        style={{
+                          background: tpl.category === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.15)',
+                          color: tpl.category === 'light' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)',
+                          backdropFilter: 'blur(4px)',
+                        }}
+                      >
+                        {tpl.category === 'dark' ? '🌙' : tpl.category === 'light' ? '☀️' : '⚡'}
                       </div>
                     </div>
 
-                    {/* Footer Labels */}
-                    <div className="relative z-10 bg-black/60 backdrop-blur-xs -mx-3 -mb-3 p-2 border-t border-white/10">
-                      <div className="text-xs font-display font-bold text-white truncate">
-                        {tpl.name}
+                    {/* Info row */}
+                    <div className="px-2 py-1.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-bold text-white truncate">{tpl.name}</span>
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ background: tpl.accentColor }}
+                        />
                       </div>
-                      <div className="text-[9px] font-light text-secondary line-clamp-1">
+                      <div className="text-[9px] text-white/50 truncate mt-0.5 leading-tight">
                         {lang === 'en' ? tpl.descEN : tpl.descTL}
                       </div>
                     </div>
-
                   </button>
                 );
               })}
