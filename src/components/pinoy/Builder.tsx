@@ -96,7 +96,7 @@ export default function Builder({
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleAvatarFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -110,18 +110,31 @@ export default function Builder({
       return;
     }
 
+    // Local preview right away
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result;
-      if (typeof result === 'string') {
-        setAvatarImage(result);
-        triggerToast("Profile photo uploaded!");
-      }
+      if (typeof result === 'string') setAvatarImage(result);
     };
     reader.readAsDataURL(file);
-
-    // reset input so re-uploading the same file still triggers onChange
     e.target.value = '';
+
+    // Upload to Supabase storage and persist URL
+    if (userId) {
+      try {
+        setSaveState('saving');
+        const url = await uploadAvatar(userId, file);
+        setAvatarImage(url);
+        await updateProfile(userId, { avatar_url: url });
+        setSaveState('saved');
+        triggerToast("Profile photo uploaded!");
+      } catch (err: any) {
+        setSaveState('error');
+        triggerToast(`Upload failed: ${err.message || 'unknown'}`);
+      }
+    } else {
+      triggerToast("Profile photo uploaded!");
+    }
   };
 
   const removeAvatarImage = () => {
