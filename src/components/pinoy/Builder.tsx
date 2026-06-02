@@ -176,6 +176,7 @@ export default function Builder({
   const [selectedAccentHex, setSelectedAccentHex] = useState('#FCD116');
   // Available button styles: 'filled' | 'outline' | 'glass' | 'pill'
   const [buttonStyleOverride, setButtonStyleOverride] = useState<'filled' | 'outline' | 'glass' | 'pill'>('filled');
+  const [tplFilter, setTplFilter] = useState<'all' | 'dark' | 'light' | 'vibrant'>('all');
 
   // Editorial color palette (5 controllable surfaces)
   const [colorBackground, setColorBackground] = useState('#0a0a0a');
@@ -1439,20 +1440,43 @@ export default function Builder({
                 <label className="block text-xs font-mono uppercase tracking-wider font-bold text-[#FCD116]">
                   Signature Templates
                 </label>
-                <span className="text-[10px] text-white/40 font-mono">{TEMPLATES.length} designs</span>
+                <span className="text-[10px] text-white/40 font-mono">
+                  {tplFilter === 'all' ? TEMPLATES.length : TEMPLATES.filter(t => t.category === tplFilter).length} designs
+                </span>
               </div>
 
               {/* Category filter pills */}
-              {(() => {
-                const [tplFilter, setTplFilter] = (window as any).__tplFilter
-                  ? [(window as any).__tplFilter, (window as any).__setTplFilter]
-                  : ['all', () => {}];
-                return null;
-              })()}
+              <div className="flex gap-1.5 flex-wrap">
+                {(['all', 'dark', 'light', 'vibrant'] as const).map((cat) => {
+                  const counts = {
+                    all: TEMPLATES.length,
+                    dark: TEMPLATES.filter(t => t.category === 'dark').length,
+                    light: TEMPLATES.filter(t => t.category === 'light').length,
+                    vibrant: TEMPLATES.filter(t => t.category === 'vibrant').length,
+                  };
+                  const labels = { all: 'All', dark: '🌙 Dark', light: '☀️ Light', vibrant: '⚡ Vibrant' };
+                  const isActive = tplFilter === cat;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setTplFilter(cat)}
+                      className="px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all"
+                      style={{
+                        background: isActive ? '#FCD116' : 'rgba(255,255,255,0.07)',
+                        color: isActive ? '#000' : 'rgba(255,255,255,0.55)',
+                        border: isActive ? '1px solid #FCD116' : '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      {labels[cat]} <span style={{ opacity: 0.6 }}>({counts[cat]})</span>
+                    </button>
+                  );
+                })}
+              </div>
 
               {/* Template card grid — 2 columns */}
               <div className="grid grid-cols-2 gap-2.5 pt-1">
-                {TEMPLATES.map((tpl) => {
+                {TEMPLATES.filter(tpl => tplFilter === 'all' || tpl.category === tplFilter).map((tpl) => {
                   const isSelected = selectedTemplate === tpl.id;
                   return (
                     <button
@@ -1484,13 +1508,13 @@ export default function Builder({
                         >
                           MS
                         </div>
-                        {/* Mini link pill */}
+                        {/* Mini link pills */}
                         <div
-                          className="w-full h-[10px] rounded-md"
+                          className="w-full h-[9px] rounded-md"
                           style={{ background: tpl.btnBgColor, border: `1px solid ${tpl.accentColor}33` }}
                         />
                         <div
-                          className="w-4/5 h-[10px] rounded-md"
+                          className="w-4/5 h-[9px] rounded-md"
                           style={{ background: tpl.btnBgColor, border: `1px solid ${tpl.accentColor}33` }}
                         />
 
@@ -1501,18 +1525,23 @@ export default function Builder({
                           </div>
                         )}
 
-                        {/* Light badge for tisa/buko */}
-                        {tpl.isLight && (
-                          <div className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1 py-0.5 rounded bg-black/30 text-white/80">
-                            LIGHT
-                          </div>
-                        )}
+                        {/* Category badge */}
+                        <div
+                          className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{
+                            background: tpl.category === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.15)',
+                            color: tpl.category === 'light' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)',
+                            backdropFilter: 'blur(4px)',
+                          }}
+                        >
+                          {tpl.category === 'dark' ? '🌙' : tpl.category === 'light' ? '☀️' : '⚡'}
+                        </div>
                       </div>
 
                       {/* Info row */}
                       <div
                         className="px-2 py-1.5"
-                        style={{ background: 'rgba(0,0,0,0.55)' }}
+                        style={{ background: 'rgba(0,0,0,0.6)' }}
                       >
                         <div className="flex items-center justify-between gap-1">
                           <span className="text-[11px] font-bold text-white truncate">{tpl.name}</span>
@@ -1529,6 +1558,13 @@ export default function Builder({
                   );
                 })}
               </div>
+
+              {/* Empty state when filter has no results (shouldn't happen but safe) */}
+              {TEMPLATES.filter(tpl => tplFilter === 'all' || tpl.category === tplFilter).length === 0 && (
+                <div className="text-center py-4 text-xs text-white/30">
+                  No templates in this category
+                </div>
+              )}
             </div>
 
             {/* Accent Color selection */}
