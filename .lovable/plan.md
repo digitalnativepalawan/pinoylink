@@ -1,55 +1,47 @@
-## Status of Part 1, 2, 3 (already partially done)
+## Plan: Generate live short URL after onboarding
 
-The previous migrations already created:
-- All 5 tables (`profiles`, `links`, `social_icons`, `payment_buttons`, `page_views`) with the exact columns and RLS policies you requested.
-- `set_updated_at()` function (but the trigger on `profiles` is NOT yet attached — needs to be added).
-- 3 public storage buckets (`avatars`, `qr-codes`, `backgrounds`) with public read + auth upload — but the per-user folder restriction (`auth.uid()::text = (storage.foldername(name))[1]`) and the MIME/size limits (5/5/10 MB, jpeg/png/webp) are NOT yet enforced.
-- `check_handle_available(handle text)` exists but does NOT block the reserved word list.
+### 1. Enable anonymous auth
+Call `supabase--configure_auth` to turn on anonymous sign-ins so a real `auth.uid()` exists when we insert the profile (required by RLS).
 
-## Plan
+### 2. Migration: allow the QR code library
+Add `qrcode` (pure JS, ~20KB) via `bun add qrcode @types/qrcode`. No DB migration needed — schema already supports everything.
 
-### 1. Migration — finish backend hardening
-
-- Attach `BEFORE UPDATE` trigger on `profiles` calling `set_updated_at()`.
-- Recreate `check_handle_available(handle text)` so it returns false for the reserved words: `admin, api, app, help, login, logout, register, settings, support, terms, privacy, pinoy, bayan, root, mabuhay, www` (case-insensitive), in addition to existing-handle check.
-- Update the 3 storage buckets to set `file_size_limit` (5/5/10 MB) and `allowed_mime_types` (`image/jpeg`, `image/png`, `image/webp`).
-- Replace storage policies on `storage.objects` for these 3 buckets so authenticated users can only INSERT/UPDATE/DELETE objects whose path starts with their own `auth.uid()` folder. Public SELECT stays.
-
-### 2. New file — `src/routes/$handle.tsx`
-
-Public read-only profile page served at `/{handle}` (e.g. `link.merqato.digital/mariasantos`).
-
-- `createFileRoute("/$handle")` with a `loader` that:
-  - Lower-cases the param.
-  - Queries `profiles` by `handle` (single row).
-  - If found, fetches `links` (enabled, ordered by sort_order), `social_icons` (active), `payment_buttons` (enabled) in parallel.
-  - Returns `{ profile, links, socials, payments }` or `{ notFound: true }`.
-- `head()` builds title `"{full_name} — link.merqato.digital/{handle}"`, description from bio, og:title/og:description/og:image (avatar_url) — derived from loader data.
-- Component:
-  - Not-found state: clean centered message + CTA button linking to `/` ("Claim link.merqato.digital/{handle}").
-  - Found state: renders the public profile using the same template tokens from `src/components/data.ts` (`TEMPLATES[selected_template]` → `bgClass`, `btnStyle`, `btnBgColor`, `btnBorder`, `avatarRing`) and the same Bricolage / DM Sans typography. Avatar, name, handle, bio, location, social icon row, link buttons, payment buttons. No edit controls.
-  - Records a page view on mount: `insert into page_views (profile_id, referrer)`.
-  - Each link button: insert `(profile_id, link_id, referrer)` then `window.open(url, '_blank')`.
-- The route file lives in `src/routes/`; the TanStack Vite plugin regenerates `routeTree.gen.ts` automatically — no manual edit needed.
-
-### 3. Edit — `src/components/pinoy/Onboarding.tsx`
-
-Inside the existing debounce effect (lines ~57-74), replace the `setTimeout` mock + `takenList` array with a real call:
-
+### 3. New file: `src/lib/publishProfile.ts`
+Helper used by the success step:
 ```ts
-const { data, error } = await supabase.rpc('check_handle_available', { handle: debouncedHandle });
-setHandleStatus(error || !data ? 'taken' : 'available');
+export async function publishProfile(input: {
+  fullName: string; email: string; mobile: string;
+  handle: string; selectedTemplate: string;
+}): Promise<{ url: string; profileId: string }>
 ```
+Logic:
+- If no session, `supabase.auth.signInAnonymously()`.
+- `supabase.from('profiles').upsert({ id: user.id, handle, full_name, email, mobile, selected_template })`.
+- Return `{ url: \`https://link.merqato.digital/${handle}\`, profileId: user.id }`.
 
-Keep the 600 ms debounce, the `'checking'` spinner state, all surrounding JSX, and the rest of the component unchanged.
+### 4. New component: `src/components/pinoy/PublishedSuccess.tsx`
+Full-screen success step shown between onboarding and Builder:
+- Confetti-style hero with handle name
+- Big rendered short URL `link.merqato.digital/{handle}`
+- QR code (generated with `qrcode.toDataURL`)
+- Copy URL button (uses `navigator.clipboard`, shows "Copied!" toast)
+- Native Share button (uses `navigator.share` with fallback)
+- "Open my page" → opens `/{handle}` in new tab
+- "Continue to editor" → calls `onContinue()` to go to Builder
+- Matches Filipino-first dark aesthetic (Bricolage Grotesque, `#FCD116` accent, same `max-w-[480px]` mobile-first frame)
 
-### 4. Out of scope (not touched)
+### 5. Edit `src/routes/index.tsx`
+Add `step === 4` = success screen, `step === 5` = Builder.
+- Step 3 → 4 transition calls `publishProfile(...)` (with loading state).
+- On error: stay on step 3, show inline error.
+- Success screen `onContinue` → `setStep(5)`.
 
-- `src/routes/index.tsx`, `Builder.tsx`, `data.ts`, styles, all UI components.
-- Auth flow / login pages (none requested in this turn — the public `/$handle` route is anonymous-readable via RLS).
+### 6. Edit `src/components/pinoy/Onboarding.tsx`
+Step 3 "Finish" button: switch from `onFinish()` to an async handler that calls `publishProfile` and only advances on success. Show spinner in button while publishing.
 
-### Confirmation needed
+### Out of scope
+- Builder persistence (links/socials/payments saving) — separate task.
+- Email/password signup, login flow — anonymous-only per your choice.
+- Custom domain DNS — already connected.
 
-The custom domain `link.merqato.digital` is already connected to the project. The `/$handle` route works automatically on any domain serving the app — no extra wiring required.
-
-Approve to proceed and I'll run the migration and create the files.
+Approve and I'll execute.
