@@ -1,5 +1,14 @@
 // @ts-nocheck
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useAuthReady } from '@/hooks/useAuthReady';
+import {
+  updateProfile,
+  uploadAvatar,
+  saveLinks,
+  saveSocials,
+  savePayments,
+  loadProfileBundle,
+} from '@/lib/profileApi';
 import { 
   TEMPLATES, 
   SOCIAL_ICONS, 
@@ -87,7 +96,7 @@ export default function Builder({
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleAvatarFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -101,18 +110,31 @@ export default function Builder({
       return;
     }
 
+    // Local preview right away
     const reader = new FileReader();
     reader.onload = (ev) => {
       const result = ev.target?.result;
-      if (typeof result === 'string') {
-        setAvatarImage(result);
-        triggerToast("Profile photo uploaded!");
-      }
+      if (typeof result === 'string') setAvatarImage(result);
     };
     reader.readAsDataURL(file);
-
-    // reset input so re-uploading the same file still triggers onChange
     e.target.value = '';
+
+    // Upload to Supabase storage and persist URL
+    if (userId) {
+      try {
+        setSaveState('saving');
+        const url = await uploadAvatar(userId, file);
+        setAvatarImage(url);
+        await updateProfile(userId, { avatar_url: url });
+        setSaveState('saved');
+        triggerToast("Profile photo uploaded!");
+      } catch (err: any) {
+        setSaveState('error');
+        triggerToast(`Upload failed: ${err.message || 'unknown'}`);
+      }
+    } else {
+      triggerToast("Profile photo uploaded!");
+    }
   };
 
   const removeAvatarImage = () => {
@@ -187,6 +209,144 @@ export default function Builder({
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
   };
+
+  // ─── Supabase persistence ─────────────────────────────────────────
+  const { userId, isReady } = useAuthReady();
+  const [hydrated, setHydrated] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  // Hydrate from DB on first ready
+  useEffect(() => {
+    if (!isReady || !userId || hydrated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const bundle = await loadProfileBundle(userId);
+        if (cancelled) return;
+        const p = bundle.profile;
+        if (p) {
+          if (p.bio) setCustomBio(p.bio);
+          if (p.location) setLocation(p.location);
+          if (p.avatar_url) setAvatarImage(p.avatar_url);
+          if (p.selected_template) setSelectedTemplate(p.selected_template);
+          if (p.accent_color) setSelectedAccentHex(p.accent_color);
+          if (p.full_name && !fullName) setFullName(p.full_name);
+        }
+        if (bundle.links.length > 0) {
+          setLinks(
+            bundle.links.map((r) => ({
+              id: r.id,
+              titleEN: r.title_en,
+              titleTL: r.title_tl ?? r.title_en,
+              url: r.url,
+              type: r.type,
+              enabled: r.enabled,
+              iconColor: r.icon_color || '#ffffff',
+              customIcon: r.custom_icon || undefined,
+            }))
+          );
+        }
+        if (bundle.socials.length > 0) {
+          setActiveSocials(bundle.socials.map((s) => s.icon_id));
+          const urlMap: Record<string, string> = {};
+          bundle.socials.forEach((s) => {
+            if (s.url) urlMap[s.icon_id] = s.url;
+          });
+          setSocialUrls(urlMap);
+        }
+        const gcash = bundle.payments.find((p) => p.provider === 'gcash');
+        const maya = bundle.payments.find((p) => p.provider === 'maya');
+        if (gcash?.custom_label) setCustomPayLabel(gcash.custom_label);
+        if (gcash) setPaymentEnabled(gcash.enabled ?? true);
+        if (gcash?.qr_image_url) setQrUploaded(true);
+      } catch (err) {
+        console.error('[Builder] hydrate failed', err);
+      } finally {
+        if (!cancelled) setHydrated(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isReady, userId, hydrated]);
+
+  // Debounced auto-save: profile fields
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    setSaveState('saving');
+    const h = setTimeout(async () => {
+      try {
+        await updateProfile(userId, {
+          full_name: fullName || 'Anonymous',
+          bio: customBio || null,
+          location: location || null,
+          selected_template: selectedTemplate,
+          accent_color: selectedAccentHex,
+        });
+        setSaveState('saved');
+      } catch (e) {
+        console.error('[Builder] profile save failed', e);
+        setSaveState('error');
+      }
+    }, 600);
+    return () => clearTimeout(h);
+  }, [hydrated, userId, fullName, customBio, location, selectedTemplate, selectedAccentHex]);
+
+  // Debounced auto-save: links
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    setSaveState('saving');
+    const h = setTimeout(async () => {
+      try {
+        await saveLinks(userId, links);
+        setSaveState('saved');
+      } catch (e) {
+        console.error('[Builder] links save failed', e);
+        setSaveState('error');
+      }
+    }, 500);
+    return () => clearTimeout(h);
+  }, [hydrated, userId, links]);
+
+  // Debounced auto-save: socials
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    setSaveState('saving');
+    const h = setTimeout(async () => {
+      try {
+        await saveSocials(userId, activeSocials, socialUrls);
+        setSaveState('saved');
+      } catch (e) {
+        console.error('[Builder] socials save failed', e);
+        setSaveState('error');
+      }
+    }, 500);
+    return () => clearTimeout(h);
+  }, [hydrated, userId, activeSocials, socialUrls]);
+
+  // Debounced auto-save: payments
+  useEffect(() => {
+    if (!hydrated || !userId) return;
+    setSaveState('saving');
+    const h = setTimeout(async () => {
+      try {
+        const rows: any[] = [];
+        if (paymentEnabled && gcashNumber) {
+          rows.push({ provider: 'gcash', custom_label: customPayLabel, enabled: true });
+        }
+        if (paymentEnabled && mayaNumber) {
+          rows.push({ provider: 'maya', custom_label: customPayLabel, enabled: true });
+        }
+        await savePayments(userId, rows);
+        setSaveState('saved');
+      } catch (e) {
+        console.error('[Builder] payments save failed', e);
+        setSaveState('error');
+      }
+    }, 600);
+    return () => clearTimeout(h);
+  }, [hydrated, userId, paymentEnabled, gcashNumber, mayaNumber, customPayLabel]);
+
 
   // Resolve current active template settings
   const currentTpl = TEMPLATES.find(t => t.id === selectedTemplate) || TEMPLATES[0];
@@ -321,6 +481,15 @@ export default function Builder({
       {toastMsg && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white text-black font-bold text-xs py-2 px-4 rounded-full shadow-2xl animate-bounce border border-[#FCD116]">
           {toastMsg}
+        </div>
+      )}
+
+      {/* Save indicator */}
+      {saveState !== 'idle' && (
+        <div className="fixed top-3 right-3 z-50 text-[10px] font-mono px-2 py-1 rounded-full border border-white/10 bg-black/70 backdrop-blur">
+          {saveState === 'saving' && <span className="text-white/70">Saving…</span>}
+          {saveState === 'saved' && <span className="text-emerald-400">✓ Saved</span>}
+          {saveState === 'error' && <span className="text-rose-400">⚠ Save failed</span>}
         </div>
       )}
 
