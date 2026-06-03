@@ -5,6 +5,7 @@ import {
   updateProfile,
   uploadAvatar,
   uploadBgImage,
+  uploadBgVideo,
   saveLinks,
   saveSocials,
   savePayments,
@@ -105,6 +106,12 @@ export default function Builder({
   const [bgImageUploading, setBgImageUploading] = useState(false);
   const bgFileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Background video (PRO) — uploaded file URL OR YouTube URL
+  const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
+  const [bgVideoUploading, setBgVideoUploading] = useState(false);
+  const [youtubeInput, setYoutubeInput] = useState('');
+  const bgVideoFileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Ref for hero download
   const profileCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -129,6 +136,61 @@ export default function Builder({
         setBgImageUploading(false);
       }
     }
+  };
+
+  const handleBgVideoFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      triggerToast('Please select a video file');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      triggerToast('Video too large — max 25MB');
+      return;
+    }
+    setWallpaperStyle('video');
+    if (!userId) {
+      triggerToast('Sign in required to upload video');
+      return;
+    }
+    setBgVideoUploading(true);
+    try {
+      const publicUrl = await uploadBgVideo(userId, file);
+      setBgVideoUrl(publicUrl);
+      triggerToast('Background video saved ✓');
+    } catch (err: any) {
+      triggerToast(`Upload failed: ${err.message || 'unknown'}`);
+    } finally {
+      setBgVideoUploading(false);
+    }
+  };
+
+  // Extract YouTube ID from any common URL form
+  const getYoutubeId = (url: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+    return null;
+  };
+
+  const applyYoutubeUrl = () => {
+    const id = getYoutubeId(youtubeInput);
+    if (!id) {
+      triggerToast('Invalid YouTube URL');
+      return;
+    }
+    const clean = `https://www.youtube.com/watch?v=${id}`;
+    setBgVideoUrl(clean);
+    setWallpaperStyle('video');
+    triggerToast('YouTube background set ✓');
   };
 
   const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
