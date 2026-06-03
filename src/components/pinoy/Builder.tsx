@@ -4,6 +4,7 @@ import { useAuthReady } from '@/hooks/useAuthReady';
 import {
   updateProfile,
   uploadAvatar,
+  uploadBgImage,
   saveLinks,
   saveSocials,
   savePayments,
@@ -48,8 +49,11 @@ import {
   Image as ImageIcon,
   Film,
   ChevronRight,
-  Zap
+  Zap,
+  Download,
+  ImagePlus
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 
 interface BuilderProps {
   lang: 'en' | 'tl';
@@ -95,6 +99,36 @@ export default function Builder({
   // Uploaded profile photo (data URL) + hidden file input ref
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const avatarFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Background image from device — full-bleed wallpaper
+  const [bgImageDataUrl, setBgImageDataUrl] = useState<string | null>(null);
+  const [bgImageUploading, setBgImageUploading] = useState(false);
+  const bgFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Ref for hero download
+  const profileCardRef = useRef<HTMLDivElement | null>(null);
+
+  const handleBgFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Show local preview immediately
+    const reader = new FileReader();
+    reader.onload = (ev) => setBgImageDataUrl(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    // Upload to Supabase if user is logged in
+    if (userId) {
+      setBgImageUploading(true);
+      try {
+        await uploadBgImage(userId, file);
+        triggerToast('Background image saved ✓');
+      } catch {
+        triggerToast('Upload failed — preview only');
+      } finally {
+        setBgImageUploading(false);
+      }
+    }
+    setWallpaperStyle('image');
+  };
 
   const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -468,10 +502,28 @@ export default function Builder({
           }} />
         );
       case 'image':
-      case 'video':
-      default:
-        // Fallback to template — also handles edge cases
-        return <div className={`absolute inset-0 z-0 ${currentTpl.bgClass}`} />;
+        return bgImageDataUrl ? (
+          <div
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: `url(${bgImageDataUrl})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }}
+          >
+            <div className="absolute inset-0 bg-black/30" />
+          </div>
+        ) : (
+          // No image yet — prompt the user
+          <div
+            className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2 cursor-pointer"
+            style={{ background: colorBackground }}
+            onClick={() => bgFileInputRef.current?.click()}
+          >
+            <ImagePlus className="w-8 h-8 text-white/30" />
+            <span className="text-[11px] text-white/40">Tap to upload background</span>
+          </div>
+        );
     }
   };
 
@@ -602,6 +654,15 @@ export default function Builder({
                   type="file"
                   accept="image/png, image/jpeg, image/webp, image/gif"
                   onChange={handleAvatarFileSelected}
+                  className="hidden"
+                />
+
+                {/* Hidden background image file input */}
+                <input
+                  ref={bgFileInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={handleBgFileSelected}
                   className="hidden"
                 />
 
@@ -905,10 +966,29 @@ export default function Builder({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => triggerToast('PNG download started')}
-                      className="bg-white/10 hover:bg-white hover:text-black text-white text-[10px] py-2 rounded font-mono font-bold cursor-pointer transition-colors"
+                      onClick={async () => {
+                        const el = profileCardRef.current;
+                        if (!el) { triggerToast('Preview not ready'); return; }
+                        triggerToast('Generating image…');
+                        try {
+                          const canvas = await html2canvas(el, {
+                            useCORS: true,
+                            allowTaint: true,
+                            scale: 2,
+                            backgroundColor: null,
+                          });
+                          const link = document.createElement('a');
+                          link.download = `${handle || 'profile'}-hero.png`;
+                          link.href = canvas.toDataURL('image/png');
+                          link.click();
+                          triggerToast('Hero card downloaded! ✓');
+                        } catch {
+                          triggerToast('Download failed — try again');
+                        }
+                      }}
+                      className="bg-white/10 hover:bg-white hover:text-black text-white text-[10px] py-2 rounded font-mono font-bold cursor-pointer transition-colors flex items-center justify-center gap-1"
                     >
-                      Download PNG
+                      <Download className="w-3 h-3" /> Download PNG
                     </button>
                     <button
                       type="button"
@@ -1738,9 +1818,20 @@ export default function Builder({
                       backgroundSize: '12px 12px'
                     }} />
                   ) },
-                  { id: 'image', label: 'Image', pro: true, render: (
-                    <div className="absolute inset-0 bg-surface-3 flex items-center justify-center">
-                      <ImageIcon className="w-5 h-5 text-white/30" />
+                  { id: 'image', label: 'Image', pro: false, render: (
+                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden"
+                      style={bgImageDataUrl ? {
+                        backgroundImage: `url(${bgImageDataUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      } : { background: 'rgba(255,255,255,0.05)' }}
+                    >
+                      {!bgImageDataUrl && <ImagePlus className="w-5 h-5 text-white/40" />}
+                      {bgImageUploading && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="text-[9px] text-white/70 font-mono">Uploading…</span>
+                        </div>
+                      )}
                     </div>
                   ) },
                   { id: 'video', label: 'Video', pro: true, render: (
@@ -1756,6 +1847,10 @@ export default function Builder({
                       type="button"
                       onClick={() => {
                         if (tile.pro && !isPro) { triggerToast(`🔒 ${tile.label} is PRO only — ₱149/mo`); return; }
+                        if (tile.id === 'image') {
+                          bgFileInputRef.current?.click();
+                          return;
+                        }
                         setWallpaperStyle(tile.id);
                         triggerToast(`Wallpaper: ${tile.label}`);
                       }}
@@ -1977,7 +2072,7 @@ export default function Builder({
               <div className="flex-1 overflow-y-auto relative pb-8 no-scrollbar">
                 
                 {/* HERO SECTION exactly matching parameters (260px tall) */}
-                <div className="h-[260px] relative w-full flex flex-col justify-end p-4 text-center overflow-hidden">
+                <div ref={profileCardRef} className="h-[260px] relative w-full flex flex-col justify-end p-4 text-center overflow-hidden">
                   
                   {/* Custom Background resolver */}
                   {renderLiveHeroBg()}
