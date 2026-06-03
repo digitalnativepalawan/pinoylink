@@ -616,6 +616,59 @@ export default function Builder({
             <span className="text-[11px] text-white/40">Tap to upload background</span>
           </div>
         );
+      case 'video': {
+        if (bgVideoUploading) {
+          return (
+            <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2" style={{ background: colorBackground }}>
+              <Film className="w-8 h-8 text-white/30 animate-pulse" />
+              <span className="text-[11px] text-white/50 font-mono">Uploading video…</span>
+            </div>
+          );
+        }
+        if (!bgVideoUrl) {
+          return (
+            <div
+              className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2 cursor-pointer"
+              style={{ background: colorBackground }}
+              onClick={() => bgVideoFileInputRef.current?.click()}
+            >
+              <Film className="w-8 h-8 text-white/30" />
+              <span className="text-[11px] text-white/40">Tap to upload video or paste YouTube URL</span>
+            </div>
+          );
+        }
+        const yt = getYoutubeId(bgVideoUrl);
+        if (yt) {
+          return (
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <iframe
+                title="bg-video"
+                className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: '177.78vh', height: '56.25vw', minWidth: '100%', minHeight: '100%' }}
+                src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&loop=1&playlist=${yt}&controls=0&modestbranding=1&playsinline=1&rel=0`}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                frameBorder={0}
+              />
+              <div className="absolute inset-0 bg-black/30" />
+            </div>
+          );
+        }
+        return (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <video
+              src={bgVideoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+          </div>
+        );
+      }
+      default:
+        return <div className="absolute inset-0 z-0" style={{ backgroundColor: colorBackground }} />;
     }
   };
 
