@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as HandleRouteImport } from './routes/$handle'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HandleBackupRouteImport } from './routes/$handle.backup'
 
 const HandleRoute = HandleRouteImport.update({
   id: '/$handle',
@@ -22,31 +23,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HandleBackupRoute = HandleBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => HandleRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$handle': typeof HandleRoute
+  '/$handle': typeof HandleRouteWithChildren
+  '/$handle/backup': typeof HandleBackupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$handle': typeof HandleRoute
+  '/$handle': typeof HandleRouteWithChildren
+  '/$handle/backup': typeof HandleBackupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$handle': typeof HandleRoute
+  '/$handle': typeof HandleRouteWithChildren
+  '/$handle/backup': typeof HandleBackupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$handle'
+  fullPaths: '/' | '/$handle' | '/$handle/backup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$handle'
-  id: '__root__' | '/' | '/$handle'
+  to: '/' | '/$handle' | '/$handle/backup'
+  id: '__root__' | '/' | '/$handle' | '/$handle/backup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  HandleRoute: typeof HandleRoute
+  HandleRoute: typeof HandleRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +74,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$handle/backup': {
+      id: '/$handle/backup'
+      path: '/backup'
+      fullPath: '/$handle/backup'
+      preLoaderRoute: typeof HandleBackupRouteImport
+      parentRoute: typeof HandleRoute
+    }
   }
 }
 
+interface HandleRouteChildren {
+  HandleBackupRoute: typeof HandleBackupRoute
+}
+
+const HandleRouteChildren: HandleRouteChildren = {
+  HandleBackupRoute: HandleBackupRoute,
+}
+
+const HandleRouteWithChildren =
+  HandleRoute._addFileChildren(HandleRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  HandleRoute: HandleRoute,
+  HandleRoute: HandleRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
