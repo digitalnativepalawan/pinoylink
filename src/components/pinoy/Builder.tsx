@@ -67,6 +67,7 @@ interface BuilderProps {
   onSignOut: () => void;
   isPro: boolean;
   setIsPro: (v: boolean) => void;
+  onPublished?: () => void; // called when user taps "Share / Go live" from Builder
 }
 
 export default function Builder({
@@ -79,7 +80,8 @@ export default function Builder({
   setSelectedTemplate,
   onSignOut,
   isPro,
-  setIsPro
+  setIsPro,
+  onPublished,
 }: BuilderProps) {
   const t = TRANSLATIONS[lang];
 
@@ -745,6 +747,18 @@ export default function Builder({
             <span className="text-white/20">|</span>
             <span className={lang === 'tl' ? 'text-white font-black' : 'text-white/40'}>FIL</span>
           </button>
+
+          {/* Share / Go Live */}
+          {onPublished && (
+            <button
+              type="button"
+              onClick={onPublished}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold cursor-pointer transition-all bg-[#FCD116] text-black hover:opacity-90 shadow-[0_0_12px_rgba(252,209,22,0.4)]"
+            >
+              <Share2 className="w-3 h-3" />
+              {lang === 'tl' ? 'I-share' : 'Share'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -2587,6 +2601,19 @@ export default function Builder({
               )}
 
             </div>
+
+            {/* ── Share your link CTA ── */}
+            {onPublished && (
+              <button
+                type="button"
+                onClick={onPublished}
+                className="w-full py-4 rounded-2xl font-display font-black text-[15px] text-black flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98] shadow-[0_0_24px_rgba(252,209,22,0.4)]"
+                style={{ background: 'linear-gradient(135deg, #FCD116 0%, #f5c400 100%)' }}
+              >
+                <Share2 className="w-5 h-5" />
+                {lang === 'tl' ? '🚀 I-share ang aking link!' : '🚀 Share my link!'}
+              </button>
+            )}
 
           </div>
         )}

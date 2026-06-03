@@ -11,8 +11,7 @@ export const Route = createFileRoute("/")({
       { title: "Pinoy Digital — Filipino-first link-in-bio" },
       {
         name: "description",
-        content:
-          "A Filipino-first link-in-bio app with native GCash & Maya QR support. Mobile-first, uniform across all devices.",
+        content: "A Filipino-first link-in-bio app with native GCash & Maya QR support. Mobile-first, uniform across all devices.",
       },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
     ],
@@ -28,9 +27,17 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+// ─── Flow ────────────────────────────────────────────────────────
+// step 1 → Name / Email / Mobile
+// step 2 → Claim handle
+// step 3 → Pick template  ("Publish my link" creates profile → step 4)
+// step 4 → Builder — design everything (links, theme, colors, bg image)
+// step 5 → Published success screen (QR + share)
+// step 6 → Back to Builder (continue editing)
+// ─────────────────────────────────────────────────────────────────
+
 function Index() {
   const [lang, setLang] = useState<"en" | "tl">("en");
-  // 1-3 = onboarding steps, 4 = published success, 5 = builder
   const [step, setStep] = useState(1);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -49,23 +56,20 @@ function Index() {
     setPublished(null);
   };
 
+  // Step 3 → creates the profile row in Supabase, then drops user into Builder
   const handlePublish = async () => {
-    const result = await publishProfile({
-      fullName,
-      email,
-      mobile,
-      handle,
-      selectedTemplate,
-    });
+    const result = await publishProfile({ fullName, email, mobile, handle, selectedTemplate });
     setPublished({ url: result.url, shortUrl: result.shortUrl, handle: result.handle });
-    setStep(4);
+    setStep(4); // → Builder, NOT success screen
   };
 
   return (
     <div className="min-h-screen w-full bg-[#050505] text-white antialiased">
       <main className="mx-auto w-full max-w-[480px] min-h-screen flex flex-col bg-black">
         <div className="flex-1 w-full pt-4">
-          {step < 4 && (
+
+          {/* Steps 1–3: Onboarding */}
+          {step <= 3 && (
             <Onboarding
               lang={lang}
               setLang={setLang}
@@ -85,17 +89,8 @@ function Index() {
             />
           )}
 
-          {step === 4 && published && (
-            <PublishedSuccess
-              fullName={fullName || "friend"}
-              handle={published.handle}
-              url={published.url}
-              shortUrl={published.shortUrl}
-              onContinue={() => setStep(5)}
-            />
-          )}
-
-          {step === 5 && (
+          {/* Step 4: Builder — design your profile */}
+          {step === 4 && (
             <Builder
               lang={lang}
               setLang={setLang}
@@ -107,8 +102,21 @@ function Index() {
               onSignOut={handleRestart}
               isPro={isPro}
               setIsPro={setIsPro}
+              onPublished={() => setStep(5)}
             />
           )}
+
+          {/* Step 5: Published success screen */}
+          {step === 5 && published && (
+            <PublishedSuccess
+              fullName={fullName || "friend"}
+              handle={published.handle}
+              url={published.url}
+              shortUrl={published.shortUrl}
+              onContinue={() => setStep(4)}
+            />
+          )}
+
         </div>
       </main>
     </div>
