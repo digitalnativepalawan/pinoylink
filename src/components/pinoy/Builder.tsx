@@ -2002,7 +2002,13 @@ export default function Builder({
                       onClick={() => {
                         if (tile.pro && !isPro) { triggerToast(`🔒 ${tile.label} is PRO only — ₱149/mo`); return; }
                         if (tile.id === 'image') {
+                          setWallpaperStyle('image');
                           bgFileInputRef.current?.click();
+                          return;
+                        }
+                        if (tile.id === 'video') {
+                          setWallpaperStyle('video');
+                          if (!bgVideoUrl) bgVideoFileInputRef.current?.click();
                           return;
                         }
                         setWallpaperStyle(tile.id);
@@ -2032,6 +2038,47 @@ export default function Builder({
                   );
                 })}
               </div>
+
+              {/* Video source controls — only when Video wallpaper is selected & PRO */}
+              {wallpaperStyle === 'video' && isPro && (
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => bgVideoFileInputRef.current?.click()}
+                      className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[11px] py-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Film className="w-3.5 h-3.5" /> Upload video
+                    </button>
+                    {bgVideoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => { setBgVideoUrl(null); setYoutubeInput(''); triggerToast('Video removed'); }}
+                        className="bg-red-500/20 hover:bg-red-500/40 text-red-200 text-[11px] py-2 px-3 rounded-lg font-bold"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={youtubeInput}
+                      onChange={(e) => setYoutubeInput(e.target.value)}
+                      placeholder="Or paste YouTube URL…"
+                      className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#FCD116]"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyYoutubeUrl}
+                      className="bg-[#FCD116] text-black text-[11px] px-3 py-2 rounded-lg font-bold hover:bg-white transition-colors"
+                    >
+                      Set
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">MP4/WebM up to 25MB, or any YouTube link (autoplays muted in loop).</p>
+                </div>
+              )}
             </div>
 
             {/* ============================================ */}
