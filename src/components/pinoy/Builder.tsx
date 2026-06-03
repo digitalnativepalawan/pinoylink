@@ -811,6 +811,15 @@ export default function Builder({
                   className="hidden"
                 />
 
+                {/* Hidden background video file input */}
+                <input
+                  ref={bgVideoFileInputRef}
+                  type="file"
+                  accept="video/mp4, video/webm, video/quicktime"
+                  onChange={handleBgVideoFileSelected}
+                  className="hidden"
+                />
+
                 <div
                   onClick={() => avatarFileInputRef.current?.click()}
                   className="relative w-[68px] h-[68px] rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 flex items-center justify-center font-display text-xl font-bold text-white cursor-pointer group shrink-0 border-2 border-white/20 shadow-lg overflow-hidden"
