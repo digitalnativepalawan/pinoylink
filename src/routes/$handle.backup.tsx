@@ -7,7 +7,7 @@ import SocialBrandIcon from '@/components/pinoy/SocialBrandIcon';
 import DynamicLucideIcon from '@/components/pinoy/DynamicLucideIcon';
 import { ChevronRight, MapPin, Copy, Check, Share2, Wallet } from 'lucide-react';
 
-export const Route = createFileRoute('/$handle')({
+export const Route = createFileRoute('/$handle/backup')({
   loader: async ({ params }) => {
     const handle = params.handle.toLowerCase();
     const { data: profile } = await supabase
