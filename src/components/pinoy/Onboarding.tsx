@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { TEMPLATES, TRANSLATIONS } from '../data';
 import RisingSunSVG from './RisingSunSVG';
+import TemplatePicker from './TemplatePicker';
 import { Check, X, Loader2, ArrowRight, Sparkles, Globe, User, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -41,9 +42,6 @@ export default function Onboarding({
   onFinish
 }: OnboardingProps) {
   const t = TRANSLATIONS[lang];
-
-  // Template category filter
-  const [tplFilter, setTplFilter] = useState<'all' | 'dark' | 'light' | 'vibrant'>('all');
 
   // Live handle availability check state with debounce simulation
   const [isChecking, setIsChecking] = useState(false);
@@ -335,148 +333,23 @@ export default function Onboarding({
           </div>
         )}
 
-        {/* STEP 3: Pick your template */}
+        {/* STEP 3: Pick your template — swipe card picker */}
         {step === 3 && (
           <div className="space-y-4 animate-fadeIn">
 
-            <div className="text-left space-y-1">
-              <h2 className="text-xl font-display font-bold">{t.pickTemplate}</h2>
-              <p className="text-xs text-secondary">
-                Select from our top-tier Filipino signature identity presets. Fully customizable inside.
-              </p>
-            </div>
+            <TemplatePicker
+              lang={lang}
+              selectedTemplate={selectedTemplate}
+              setSelectedTemplate={setSelectedTemplate}
+            />
 
-            {/* Category filter pills */}
-            <div className="flex gap-1.5 flex-wrap">
-              {(['all', 'dark', 'light', 'vibrant'] as const).map((cat) => {
-                const counts = {
-                  all: TEMPLATES.length,
-                  dark: TEMPLATES.filter(t => t.category === 'dark').length,
-                  light: TEMPLATES.filter(t => t.category === 'light').length,
-                  vibrant: TEMPLATES.filter(t => t.category === 'vibrant').length,
-                };
-                const labels = { all: 'All', dark: '🌙 Dark', light: '☀️ Light', vibrant: '⚡ Vibrant' };
-                const isActive = tplFilter === cat;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setTplFilter(cat)}
-                    className="px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all"
-                    style={{
-                      background: isActive ? '#FCD116' : 'rgba(255,255,255,0.07)',
-                      color: isActive ? '#000' : 'rgba(255,255,255,0.55)',
-                      border: isActive ? '1px solid #FCD116' : '1px solid rgba(255,255,255,0.1)',
-                    }}
-                  >
-                    {labels[cat]} <span style={{ opacity: 0.6 }}>({counts[cat]})</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Filtered template grid */}
-            <div className="grid grid-cols-2 gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
-              {TEMPLATES.filter(tpl => tplFilter === 'all' || tpl.category === tplFilter).map((tpl) => {
-                const isSelected = selectedTemplate === tpl.id;
-                return (
-                  <button
-                    key={tpl.id}
-                    type="button"
-                    onClick={() => setSelectedTemplate(tpl.id)}
-                    className={`relative rounded-xl overflow-hidden cursor-pointer transition-all text-left ${
-                      isSelected
-                        ? 'ring-2 ring-[#FCD116] scale-[1.02] shadow-lg shadow-black/40'
-                        : 'opacity-70 hover:opacity-100 hover:scale-[1.01]'
-                    }`}
-                    style={{ border: isSelected ? '2px solid #FCD116' : '2px solid rgba(255,255,255,0.08)' }}
-                  >
-                    {/* Background preview */}
-                    <div className={`${tpl.bgClass} h-[96px] w-full relative flex flex-col items-center justify-center gap-1.5 px-2`}>
-
-                      {/* Watawat rising sun hint */}
-                      {tpl.id === 'watawat' && (
-                        <RisingSunSVG className="right-0 top-0 w-[80px] h-[80px]" opacity={0.2} />
-                      )}
-
-                      {/* Mini avatar */}
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black z-10"
-                        style={{
-                          border: `1.5px solid ${tpl.accentColor}`,
-                          background: `${tpl.accentColor}22`,
-                          color: tpl.accentColor,
-                          boxShadow: `0 0 8px ${tpl.accentColor}44`,
-                        }}
-                      >
-                        MS
-                      </div>
-
-                      {/* Mini link pills */}
-                      <div className="w-full space-y-1 px-1 z-10">
-                        <div
-                          className="h-[9px] rounded-md w-full"
-                          style={{
-                            background: tpl.btnBgColor,
-                            border: `1px solid ${tpl.accentColor}33`,
-                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '4px',
-                          }}
-                        />
-                        <div
-                          className="h-[9px] rounded-md w-4/5 mx-auto"
-                          style={{
-                            background: tpl.btnBgColor,
-                            border: `1px solid ${tpl.accentColor}33`,
-                            borderRadius: tpl.btnStyle === 'pill' ? '999px' : '4px',
-                          }}
-                        />
-                      </div>
-
-                      {/* Selected checkmark */}
-                      {isSelected && (
-                        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#FCD116] flex items-center justify-center z-20">
-                          <Check className="w-3 h-3 text-black stroke-[3]" />
-                        </div>
-                      )}
-
-                      {/* Category badge */}
-                      <div
-                        className="absolute top-1.5 left-1.5 text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10"
-                        style={{
-                          background: tpl.category === 'light' ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.15)',
-                          color: tpl.category === 'light' ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)',
-                          backdropFilter: 'blur(4px)',
-                        }}
-                      >
-                        {tpl.category === 'dark' ? '🌙' : tpl.category === 'light' ? '☀️' : '⚡'}
-                      </div>
-                    </div>
-
-                    {/* Info row */}
-                    <div className="px-2 py-1.5" style={{ background: 'rgba(0,0,0,0.6)' }}>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-bold text-white truncate">{tpl.name}</span>
-                        <span
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ background: tpl.accentColor }}
-                        />
-                      </div>
-                      <div className="text-[9px] text-white/50 truncate mt-0.5 leading-tight">
-                        {lang === 'en' ? tpl.descEN : tpl.descTL}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Step 3 Actions */}
-            <div className="pt-2 flex items-center gap-2">
+            {/* Actions */}
+            <div className="pt-1 flex items-center gap-2">
               <button
                 onClick={() => setStep(2)}
-                className="bg-surface-2 hover:bg-surface-3 transition-colors text-white py-3 px-4 rounded-xl text-xs font-bold cursor-pointer"
+                className="bg-surface-2 hover:bg-surface-3 transition-colors text-white py-3.5 px-4 rounded-xl text-xs font-bold cursor-pointer"
               >
-                Back
+                {lang === 'tl' ? 'Bumalik' : 'Back'}
               </button>
 
               <button
@@ -492,19 +365,32 @@ export default function Onboarding({
                     setIsPublishing(false);
                   }
                 }}
-                className={`flex-1 transition-all py-3 px-4 rounded-xl font-bold text-center text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl ${
-                  isPublishing ? 'bg-white/30 text-black/60 cursor-wait' : 'bg-white text-black hover:bg-[#FCD116]'
+                className={`flex-1 transition-all py-3.5 px-4 rounded-xl font-bold text-center text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl ${
+                  isPublishing
+                    ? 'bg-white/30 text-black/60 cursor-wait'
+                    : 'bg-[#FCD116] text-black hover:opacity-90'
                 }`}
               >
                 {isPublishing ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Generating your link...</span>
+                    <span>{lang === 'tl' ? 'Ginagawa ang iyong link...' : 'Generating your link...'}</span>
                   </>
                 ) : (
                   <>
-                    <span>Publish my link</span>
-                    <ArrowRight className="w-4 h-4 text-black" />
+                    <span>
+                      {lang === 'tl' ? 'I-publish na' : 'Publish my link'}
+                      {' '}
+                      {(() => {
+                        const tpl = TEMPLATES.find(t => t.id === selectedTemplate);
+                        return tpl ? (
+                          <span className="ml-1 px-1.5 py-0.5 rounded bg-black/20 text-[10px] font-semibold">
+                            {tpl.name}
+                          </span>
+                        ) : null;
+                      })()}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -515,10 +401,6 @@ export default function Onboarding({
                 {publishError}
               </div>
             )}
-
-            <div className="text-[10px] text-center text-white/40 italic">
-              ✨ Every option tailored specifically for rapid PH mobile consumption.
-            </div>
 
           </div>
         )}
