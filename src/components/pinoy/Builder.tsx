@@ -111,23 +111,24 @@ export default function Builder({
   const handleBgFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Show local preview immediately
+    // Show local data URL preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => setBgImageDataUrl(ev.target?.result as string);
     reader.readAsDataURL(file);
-    // Upload to Supabase if user is logged in
+    setWallpaperStyle('image');
+    // Upload to Supabase and replace data URL with public URL
     if (userId) {
       setBgImageUploading(true);
       try {
-        await uploadBgImage(userId, file);
-        triggerToast('Background image saved ✓');
+        const publicUrl = await uploadBgImage(userId, file);
+        setBgImageDataUrl(publicUrl); // replaces data URL — auto-save will persist this
+        triggerToast('Background saved ✓');
       } catch {
-        triggerToast('Upload failed — preview only');
+        triggerToast('Upload failed — using local preview');
       } finally {
         setBgImageUploading(false);
       }
     }
-    setWallpaperStyle('image');
   };
 
   const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -266,6 +267,17 @@ export default function Builder({
           if (p.selected_template) setSelectedTemplate(p.selected_template);
           if (p.accent_color) setSelectedAccentHex(p.accent_color);
           if (p.full_name && !fullName) setFullName(p.full_name);
+          // Design tab fields
+          if (p.bg_image_url) setBgImageDataUrl(p.bg_image_url);
+          if (p.wallpaper_style) setWallpaperStyle(p.wallpaper_style as any);
+          if (p.profile_layout) setProfileLayout(p.profile_layout as any);
+          if (p.button_shape) setButtonStyleOverride(p.button_shape as any);
+          if (p.page_font) setPageFont(p.page_font);
+          if (p.color_background) setColorBackground(p.color_background);
+          if (p.color_buttons) setColorButtons(p.color_buttons);
+          if (p.color_button_text) setColorButtonText(p.color_button_text);
+          if (p.color_page_text) setColorPageText(p.color_page_text);
+          if (p.color_title_text) setColorTitleText(p.color_title_text);
         }
         if (bundle.links.length > 0) {
           setLinks(
@@ -305,7 +317,7 @@ export default function Builder({
     };
   }, [isReady, userId, hydrated]);
 
-  // Debounced auto-save: profile fields
+  // Debounced auto-save: profile fields + all design tab settings
   useEffect(() => {
     if (!hydrated || !userId) return;
     setSaveState('saving');
@@ -317,6 +329,17 @@ export default function Builder({
           location: location || null,
           selected_template: selectedTemplate,
           accent_color: selectedAccentHex,
+          // Design tab
+          bg_image_url: bgImageDataUrl || null,
+          wallpaper_style: wallpaperStyle,
+          profile_layout: profileLayout,
+          button_shape: buttonStyleOverride,
+          page_font: pageFont,
+          color_background: colorBackground,
+          color_buttons: colorButtons,
+          color_button_text: colorButtonText,
+          color_page_text: colorPageText,
+          color_title_text: colorTitleText,
         });
         setSaveState('saved');
       } catch (e) {
@@ -325,7 +348,12 @@ export default function Builder({
       }
     }, 600);
     return () => clearTimeout(h);
-  }, [hydrated, userId, fullName, customBio, location, selectedTemplate, selectedAccentHex]);
+  }, [
+    hydrated, userId,
+    fullName, customBio, location, selectedTemplate, selectedAccentHex,
+    bgImageDataUrl, wallpaperStyle, profileLayout, buttonStyleOverride, pageFont,
+    colorBackground, colorButtons, colorButtonText, colorPageText, colorTitleText,
+  ]);
 
   // Debounced auto-save: links
   useEffect(() => {

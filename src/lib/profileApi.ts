@@ -9,6 +9,17 @@ export interface ProfilePatch {
   avatar_url?: string | null;
   selected_template?: string;
   accent_color?: string;
+  // Design tab — all persisted
+  bg_image_url?: string | null;
+  wallpaper_style?: string;
+  profile_layout?: string;
+  button_shape?: string;
+  page_font?: string;
+  color_background?: string;
+  color_buttons?: string;
+  color_button_text?: string;
+  color_page_text?: string;
+  color_title_text?: string;
 }
 
 export async function updateProfile(userId: string, patch: ProfilePatch) {
@@ -50,7 +61,6 @@ export async function uploadQr(userId: string, file: File): Promise<string> {
 }
 
 export async function saveLinks(userId: string, links: LinkItem[]) {
-  // Replace-all strategy
   const { error: delErr } = await supabase.from('links').delete().eq('profile_id', userId);
   if (delErr) throw delErr;
   if (links.length === 0) return;

@@ -367,11 +367,62 @@ function PublicProfilePage() {
 
   const { profile, links, socials, payments } = data;
   const tpl = TEMPLATES.find((t) => t.id === profile.selected_template) ?? TEMPLATES[0];
-  const accent = profile.accent_color || '#FCD116';
-  const textColor = tpl.textColor || '#ffffff';
-  const mutedColor = tpl.mutedColor || 'rgba(255,255,255,0.6)';
-  const linkTextColor = tpl.linkTextColor || '#ffffff';
-  const isLight = tpl.isLight || false;
+
+  // Use saved design overrides, fall back to template defaults
+  const accent         = profile.accent_color      || tpl.accentColor    || '#FCD116';
+  const colorBg        = profile.color_background  || tpl.bgClass        ? undefined : '#0a0a0a';
+  const colorBtns      = profile.color_buttons     || accent;
+  const colorBtnText   = profile.color_button_text || (tpl.isLight ? '#000000' : '#ffffff');
+  const textColor      = profile.color_page_text   || tpl.textColor      || '#ffffff';
+  const titleText      = profile.color_title_text  || tpl.textColor      || '#ffffff';
+  const mutedColor     = tpl.mutedColor             || 'rgba(255,255,255,0.6)';
+  const isLight        = tpl.isLight                || false;
+  const font           = profile.page_font          || tpl.fontDisplay    || 'Bricolage Grotesque';
+  const layout         = profile.profile_layout     || 'classic';
+  const wallpaper      = profile.wallpaper_style    || 'fill';
+  const bgImageUrl     = profile.bg_image_url       || null;
+
+  // Button shape from saved setting
+  const savedShape = (profile.button_shape || tpl.btnStyle || 'filled') as string;
+  const btnRadius =
+    savedShape === 'pill'    ? '999px' :
+    savedShape === 'glass'   ? '14px'  :
+    savedShape === 'outline' ? '12px'  : '12px';
+
+  // Background style for hero
+  const heroBgStyle: React.CSSProperties = (() => {
+    if (wallpaper === 'image' && bgImageUrl) {
+      return { backgroundImage: `url(${bgImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    }
+    if (wallpaper === 'gradient') {
+      return { background: `linear-gradient(135deg, ${profile.color_background || '#0a0a0a'} 0%, ${colorBtns} 100%)` };
+    }
+    if (wallpaper === 'blur') {
+      return { background: `radial-gradient(circle at 30% 30%, ${colorBtns}aa, transparent 60%), radial-gradient(circle at 70% 70%, ${profile.color_background || '#0a0a0a'}, ${profile.color_background || '#0a0a0a'})` };
+    }
+    if (wallpaper === 'pattern') {
+      return {
+        backgroundColor: profile.color_background || '#0a0a0a',
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      };
+    }
+    return {}; // 'fill' — uses tpl.bgClass
+  })();
+
+  const linkBtnStyle: React.CSSProperties = {
+    background:     savedShape === 'outline' ? 'transparent'                 : `${colorBtns}22`,
+    border:         savedShape === 'outline' ? `2px solid ${colorBtns}`      : `1px solid ${colorBtns}44`,
+    borderRadius:   btnRadius,
+    color:          colorBtnText,
+    fontFamily:     `${font}, sans-serif`,
+    ...(savedShape === 'glass' ? { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', background: `${colorBtns}15` } : {}),
+  };
+
+  const avatarStyle: React.CSSProperties = {
+    border: `3px solid ${accent}`,
+    boxShadow: `0 0 0 5px ${accent}22, 0 0 28px ${accent}55`,
+  };
 
   const copyLink = () => {
     navigator.clipboard?.writeText(`https://link.merqato.digital/${profile.handle}`);
@@ -387,34 +438,23 @@ function PublicProfilePage() {
   };
 
   // Split links by render type
-  const buttonLinks = links.filter((l: any) => getLinkRenderType(l) === 'button');
+  const buttonLinks  = links.filter((l: any) => getLinkRenderType(l) === 'button');
   const youtubeLinks = links.filter((l: any) => getLinkRenderType(l) === 'youtube');
   const spotifyLinks = links.filter((l: any) => getLinkRenderType(l) === 'spotify');
-  const tiktokLinks = links.filter((l: any) => getLinkRenderType(l) === 'tiktok');
+  const tiktokLinks  = links.filter((l: any) => getLinkRenderType(l) === 'tiktok');
   const hasMedia = youtubeLinks.length > 0 || spotifyLinks.length > 0 || tiktokLinks.length > 0;
 
-  // Button styling
-  const btnRadius = tpl.btnStyle === 'pill' ? '999px' : '16px';
-  const linkBtnStyle: React.CSSProperties = {
-    background: tpl.btnBgColor || 'rgba(255,255,255,0.08)',
-    borderRadius: btnRadius,
-    color: linkTextColor,
-    fontFamily: `${tpl.fontDisplay}, sans-serif`,
-    ...(tpl.btnStyle === 'glass' ? { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } : {}),
-  };
-  const avatarStyle: React.CSSProperties = {
-    border: `3px solid ${accent}`,
-    boxShadow: `0 0 0 5px ${accent}22, 0 0 28px ${accent}55`,
-  };
-
-  const surfaceCls = isLight ? 'bg-black/6' : 'bg-white/8';
   const borderCls = isLight ? 'border-black/10' : 'border-white/10';
-  const tabActiveCls = `text-black font-semibold`;
 
   return (
     <div
-      className={`min-h-screen ${tpl.bgClass} relative overflow-x-hidden`}
-      style={{ fontFamily: `${tpl.fontDisplay}, sans-serif`, color: textColor }}
+      className={`min-h-screen ${wallpaper === 'fill' || !heroBgStyle.background && !heroBgStyle.backgroundImage ? tpl.bgClass : ''} relative overflow-x-hidden`}
+      style={{
+        fontFamily: `${font}, sans-serif`,
+        color: textColor,
+        ...(heroBgStyle.backgroundImage || heroBgStyle.background ? heroBgStyle : {}),
+        ...(profile.color_background && wallpaper === 'fill' ? { backgroundColor: profile.color_background } : {}),
+      }}
     >
       {/* ── Hero header with frosted overlay ── */}
       <div className="relative w-full" style={{ minHeight: 280 }}>
@@ -603,7 +643,7 @@ function PublicProfilePage() {
                     />
                   </span>
                 )}
-                <span className="flex-1 text-sm font-semibold" style={{ color: linkTextColor }}>
+                <span className="flex-1 text-sm font-semibold" style={{ color: colorBtnText }}>
                   {link.title_en}
                 </span>
                 <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-40" />
@@ -660,7 +700,7 @@ function PublicProfilePage() {
                       >
                         <Wallet className="w-4 h-4" style={{ color: accent }} />
                       </span>
-                      <span className="flex-1 text-sm font-semibold text-left" style={{ color: linkTextColor }}>
+                      <span className="flex-1 text-sm font-semibold text-left" style={{ color: colorBtnText }}>
                         {p.custom_label || `Send via ${p.provider}`}
                       </span>
                       <ChevronRight
