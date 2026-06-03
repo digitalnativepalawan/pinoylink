@@ -20,6 +20,7 @@ export interface ProfilePatch {
   color_button_text?: string;
   color_page_text?: string;
   color_title_text?: string;
+  bg_video_url?: string | null;
 }
 
 export async function updateProfile(userId: string, patch: ProfilePatch) {
@@ -57,6 +58,17 @@ export async function uploadQr(userId: string, file: File): Promise<string> {
     .upload(path, file, { upsert: true, contentType: file.type });
   if (upErr) throw upErr;
   const { data } = supabase.storage.from('qr-codes').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+export async function uploadBgVideo(userId: string, file: File): Promise<string> {
+  const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+  const path = `${userId}/bgvideo-${Date.now()}.${ext}`;
+  const { error: upErr } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: true, contentType: file.type || 'video/mp4' });
+  if (upErr) throw upErr;
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path);
   return data.publicUrl;
 }
 
