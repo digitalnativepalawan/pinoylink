@@ -691,6 +691,15 @@ export default function Builder({
         </div>
       )}
 
+      {/* ─── ALWAYS-MOUNTED FILE INPUTS ─────────────────────────────
+           These MUST live here, outside all tab conditionals.
+           If placed inside a tab, the ref is null when that tab is inactive
+           and .click() silently does nothing.
+      ─────────────────────────────────────────────────────────────── */}
+      <input ref={avatarFileInputRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleAvatarFileSelected} className="hidden" />
+      <input ref={bgFileInputRef}     type="file" accept="image/png,image/jpeg,image/webp,image/heic" onChange={handleBgFileSelected} className="hidden" />
+      <input ref={bgVideoFileInputRef} type="file" accept="video/mp4,video/webm,video/quicktime,video/mov" onChange={handleBgVideoFileSelected} className="hidden" />
+
       {/* TOP BAR */}
       <div className="flex items-center justify-between p-4 bg-surface-1 border-b border-white/10 sticky top-0 z-30">
         <div className="flex items-center gap-2">
@@ -793,32 +802,7 @@ export default function Builder({
               {/* Avatar upload — real file picker */}
               <div className="flex items-start gap-4">
 
-                {/* Hidden file input — triggered by tapping the circle or "+" badge */}
-                <input
-                  ref={avatarFileInputRef}
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp, image/gif"
-                  onChange={handleAvatarFileSelected}
-                  className="hidden"
-                />
-
-                {/* Hidden background image file input */}
-                <input
-                  ref={bgFileInputRef}
-                  type="file"
-                  accept="image/png, image/jpeg, image/webp"
-                  onChange={handleBgFileSelected}
-                  className="hidden"
-                />
-
-                {/* Hidden background video file input */}
-                <input
-                  ref={bgVideoFileInputRef}
-                  type="file"
-                  accept="video/mp4, video/webm, video/quicktime"
-                  onChange={handleBgVideoFileSelected}
-                  className="hidden"
-                />
+                {/* Avatar click area */}
 
                 <div
                   onClick={() => avatarFileInputRef.current?.click()}
