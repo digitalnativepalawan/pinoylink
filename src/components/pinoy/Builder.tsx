@@ -1925,6 +1925,60 @@ export default function Builder({
                   ? 'Centered avatar above name — timeless editorial bio.' 
                   : 'Avatar tucked top-left with bold full-bleed wallpaper — magazine-cover energy.'}
               </div>
+
+              {/* Hero image upload — only shown when Hero layout is active */}
+              {profileLayout === 'hero' && (
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-white/50">
+                    Hero Background Image
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => bgFileInputRef.current?.click()}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed border-white/20 hover:border-[#FCD116]/60 transition-all cursor-pointer group"
+                    style={{
+                      background: bgImageDataUrl
+                        ? `linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)), url(${bgImageDataUrl}) center/cover`
+                        : 'rgba(255,255,255,0.04)',
+                    }}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors group-hover:bg-[#FCD116]/20"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}
+                    >
+                      <ImagePlus className="w-4 h-4 text-white/60 group-hover:text-[#FCD116]" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      {bgImageDataUrl ? (
+                        <>
+                          <div className="text-[11px] font-semibold text-white">Hero image set ✓</div>
+                          <div className="text-[10px] text-white/40">Tap to replace</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-[11px] font-semibold text-white/70">Upload from device</div>
+                          <div className="text-[10px] text-white/30">JPG, PNG, WEBP — covers full hero background</div>
+                        </>
+                      )}
+                    </div>
+                    {bgImageDataUrl && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBgImageDataUrl(null);
+                          setWallpaperStyle('fill');
+                          triggerToast('Hero image removed');
+                        }}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all flex-shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </button>
+                </div>
+              )}
+
             </div>
 
             {/* ============================================ */}
