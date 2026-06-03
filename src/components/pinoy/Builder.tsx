@@ -5,6 +5,7 @@ import {
   updateProfile,
   uploadAvatar,
   uploadBgImage,
+  uploadBgVideo,
   saveLinks,
   saveSocials,
   savePayments,
@@ -105,6 +106,12 @@ export default function Builder({
   const [bgImageUploading, setBgImageUploading] = useState(false);
   const bgFileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Background video (PRO) — uploaded file URL OR YouTube URL
+  const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
+  const [bgVideoUploading, setBgVideoUploading] = useState(false);
+  const [youtubeInput, setYoutubeInput] = useState('');
+  const bgVideoFileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Ref for hero download
   const profileCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -129,6 +136,61 @@ export default function Builder({
         setBgImageUploading(false);
       }
     }
+  };
+
+  const handleBgVideoFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      triggerToast('Please select a video file');
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      triggerToast('Video too large — max 25MB');
+      return;
+    }
+    setWallpaperStyle('video');
+    if (!userId) {
+      triggerToast('Sign in required to upload video');
+      return;
+    }
+    setBgVideoUploading(true);
+    try {
+      const publicUrl = await uploadBgVideo(userId, file);
+      setBgVideoUrl(publicUrl);
+      triggerToast('Background video saved ✓');
+    } catch (err: any) {
+      triggerToast(`Upload failed: ${err.message || 'unknown'}`);
+    } finally {
+      setBgVideoUploading(false);
+    }
+  };
+
+  // Extract YouTube ID from any common URL form
+  const getYoutubeId = (url: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/,
+    ];
+    for (const p of patterns) {
+      const m = url.match(p);
+      if (m) return m[1];
+    }
+    if (/^[A-Za-z0-9_-]{11}$/.test(url.trim())) return url.trim();
+    return null;
+  };
+
+  const applyYoutubeUrl = () => {
+    const id = getYoutubeId(youtubeInput);
+    if (!id) {
+      triggerToast('Invalid YouTube URL');
+      return;
+    }
+    const clean = `https://www.youtube.com/watch?v=${id}`;
+    setBgVideoUrl(clean);
+    setWallpaperStyle('video');
+    triggerToast('YouTube background set ✓');
   };
 
   const handleAvatarFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -269,6 +331,7 @@ export default function Builder({
           if (p.full_name && !fullName) setFullName(p.full_name);
           // Design tab fields
           if (p.bg_image_url) setBgImageDataUrl(p.bg_image_url);
+          if (p.bg_video_url) setBgVideoUrl(p.bg_video_url);
           if (p.wallpaper_style) setWallpaperStyle(p.wallpaper_style as any);
           if (p.profile_layout) setProfileLayout(p.profile_layout as any);
           if (p.button_shape) setButtonStyleOverride(p.button_shape as any);
@@ -331,6 +394,7 @@ export default function Builder({
           accent_color: selectedAccentHex,
           // Design tab
           bg_image_url: bgImageDataUrl || null,
+          bg_video_url: bgVideoUrl || null,
           wallpaper_style: wallpaperStyle,
           profile_layout: profileLayout,
           button_shape: buttonStyleOverride,
@@ -351,7 +415,7 @@ export default function Builder({
   }, [
     hydrated, userId,
     fullName, customBio, location, selectedTemplate, selectedAccentHex,
-    bgImageDataUrl, wallpaperStyle, profileLayout, buttonStyleOverride, pageFont,
+    bgImageDataUrl, bgVideoUrl, wallpaperStyle, profileLayout, buttonStyleOverride, pageFont,
     colorBackground, colorButtons, colorButtonText, colorPageText, colorTitleText,
   ]);
 
@@ -552,6 +616,59 @@ export default function Builder({
             <span className="text-[11px] text-white/40">Tap to upload background</span>
           </div>
         );
+      case 'video': {
+        if (bgVideoUploading) {
+          return (
+            <div className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2" style={{ background: colorBackground }}>
+              <Film className="w-8 h-8 text-white/30 animate-pulse" />
+              <span className="text-[11px] text-white/50 font-mono">Uploading video…</span>
+            </div>
+          );
+        }
+        if (!bgVideoUrl) {
+          return (
+            <div
+              className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-2 cursor-pointer"
+              style={{ background: colorBackground }}
+              onClick={() => bgVideoFileInputRef.current?.click()}
+            >
+              <Film className="w-8 h-8 text-white/30" />
+              <span className="text-[11px] text-white/40">Tap to upload video or paste YouTube URL</span>
+            </div>
+          );
+        }
+        const yt = getYoutubeId(bgVideoUrl);
+        if (yt) {
+          return (
+            <div className="absolute inset-0 z-0 overflow-hidden">
+              <iframe
+                title="bg-video"
+                className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ width: '177.78vh', height: '56.25vw', minWidth: '100%', minHeight: '100%' }}
+                src={`https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&loop=1&playlist=${yt}&controls=0&modestbranding=1&playsinline=1&rel=0`}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                frameBorder={0}
+              />
+              <div className="absolute inset-0 bg-black/30" />
+            </div>
+          );
+        }
+        return (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <video
+              src={bgVideoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/30" />
+          </div>
+        );
+      }
+      default:
+        return <div className="absolute inset-0 z-0" style={{ backgroundColor: colorBackground }} />;
     }
   };
 
@@ -691,6 +808,15 @@ export default function Builder({
                   type="file"
                   accept="image/png, image/jpeg, image/webp"
                   onChange={handleBgFileSelected}
+                  className="hidden"
+                />
+
+                {/* Hidden background video file input */}
+                <input
+                  ref={bgVideoFileInputRef}
+                  type="file"
+                  accept="video/mp4, video/webm, video/quicktime"
+                  onChange={handleBgVideoFileSelected}
                   className="hidden"
                 />
 
@@ -1876,7 +2002,13 @@ export default function Builder({
                       onClick={() => {
                         if (tile.pro && !isPro) { triggerToast(`🔒 ${tile.label} is PRO only — ₱149/mo`); return; }
                         if (tile.id === 'image') {
+                          setWallpaperStyle('image');
                           bgFileInputRef.current?.click();
+                          return;
+                        }
+                        if (tile.id === 'video') {
+                          setWallpaperStyle('video');
+                          if (!bgVideoUrl) bgVideoFileInputRef.current?.click();
                           return;
                         }
                         setWallpaperStyle(tile.id);
@@ -1906,6 +2038,47 @@ export default function Builder({
                   );
                 })}
               </div>
+
+              {/* Video source controls — only when Video wallpaper is selected & PRO */}
+              {wallpaperStyle === 'video' && isPro && (
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => bgVideoFileInputRef.current?.click()}
+                      className="flex-1 bg-white/10 hover:bg-white/20 text-white text-[11px] py-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Film className="w-3.5 h-3.5" /> Upload video
+                    </button>
+                    {bgVideoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => { setBgVideoUrl(null); setYoutubeInput(''); triggerToast('Video removed'); }}
+                        className="bg-red-500/20 hover:bg-red-500/40 text-red-200 text-[11px] py-2 px-3 rounded-lg font-bold"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={youtubeInput}
+                      onChange={(e) => setYoutubeInput(e.target.value)}
+                      placeholder="Or paste YouTube URL…"
+                      className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#FCD116]"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyYoutubeUrl}
+                      className="bg-[#FCD116] text-black text-[11px] px-3 py-2 rounded-lg font-bold hover:bg-white transition-colors"
+                    >
+                      Set
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-white/40 font-mono">MP4/WebM up to 25MB, or any YouTube link (autoplays muted in loop).</p>
+                </div>
+              )}
             </div>
 
             {/* ============================================ */}

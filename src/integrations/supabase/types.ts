@@ -146,6 +146,7 @@ export type Database = {
           accent_color: string | null
           avatar_url: string | null
           bg_image_url: string | null
+          bg_video_url: string | null
           bio: string | null
           button_shape: string | null
           color_background: string | null
@@ -171,6 +172,7 @@ export type Database = {
           accent_color?: string | null
           avatar_url?: string | null
           bg_image_url?: string | null
+          bg_video_url?: string | null
           bio?: string | null
           button_shape?: string | null
           color_background?: string | null
@@ -196,6 +198,7 @@ export type Database = {
           accent_color?: string | null
           avatar_url?: string | null
           bg_image_url?: string | null
+          bg_video_url?: string | null
           bio?: string | null
           button_shape?: string | null
           color_background?: string | null

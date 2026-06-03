@@ -381,6 +381,14 @@ function PublicProfilePage() {
   const layout         = profile.profile_layout     || 'classic';
   const wallpaper      = profile.wallpaper_style    || 'fill';
   const bgImageUrl     = profile.bg_image_url       || null;
+  const bgVideoUrl     = (profile as any).bg_video_url || null;
+  const ytId = (() => {
+    if (!bgVideoUrl) return null;
+    const m = bgVideoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    if (/^[A-Za-z0-9_-]{11}$/.test(bgVideoUrl.trim())) return bgVideoUrl.trim();
+    return null;
+  })();
 
   // Button shape from saved setting
   const savedShape = (profile.button_shape || tpl.btnStyle || 'filled') as string;
@@ -456,6 +464,24 @@ function PublicProfilePage() {
         ...(profile.color_background && wallpaper === 'fill' ? { backgroundColor: profile.color_background } : {}),
       }}
     >
+      {/* Fixed background video layer (Pro) */}
+      {wallpaper === 'video' && bgVideoUrl && (
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+          {ytId ? (
+            <iframe
+              title="bg-video"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{ width: '177.78vh', height: '56.25vw', minWidth: '100%', minHeight: '100%' }}
+              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&modestbranding=1&playsinline=1&rel=0`}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              frameBorder={0}
+            />
+          ) : (
+            <video src={bgVideoUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+      )}
       {/* ── Hero header with frosted overlay ── */}
       <div className="relative w-full" style={{ minHeight: 280 }}>
         {/* Background blurred avatar for cinematic effect */}
