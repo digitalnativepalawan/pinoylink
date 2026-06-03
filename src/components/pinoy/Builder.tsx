@@ -331,6 +331,7 @@ export default function Builder({
           if (p.full_name && !fullName) setFullName(p.full_name);
           // Design tab fields
           if (p.bg_image_url) setBgImageDataUrl(p.bg_image_url);
+          if (p.bg_video_url) setBgVideoUrl(p.bg_video_url);
           if (p.wallpaper_style) setWallpaperStyle(p.wallpaper_style as any);
           if (p.profile_layout) setProfileLayout(p.profile_layout as any);
           if (p.button_shape) setButtonStyleOverride(p.button_shape as any);
@@ -393,6 +394,7 @@ export default function Builder({
           accent_color: selectedAccentHex,
           // Design tab
           bg_image_url: bgImageDataUrl || null,
+          bg_video_url: bgVideoUrl || null,
           wallpaper_style: wallpaperStyle,
           profile_layout: profileLayout,
           button_shape: buttonStyleOverride,
@@ -413,7 +415,7 @@ export default function Builder({
   }, [
     hydrated, userId,
     fullName, customBio, location, selectedTemplate, selectedAccentHex,
-    bgImageDataUrl, wallpaperStyle, profileLayout, buttonStyleOverride, pageFont,
+    bgImageDataUrl, bgVideoUrl, wallpaperStyle, profileLayout, buttonStyleOverride, pageFont,
     colorBackground, colorButtons, colorButtonText, colorPageText, colorTitleText,
   ]);
 
