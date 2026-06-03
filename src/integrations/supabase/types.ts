@@ -145,7 +145,14 @@ export type Database = {
         Row: {
           accent_color: string | null
           avatar_url: string | null
+          bg_image_url: string | null
           bio: string | null
+          button_shape: string | null
+          color_background: string | null
+          color_button_text: string | null
+          color_buttons: string | null
+          color_page_text: string | null
+          color_title_text: string | null
           created_at: string | null
           email: string | null
           full_name: string
@@ -154,13 +161,23 @@ export type Database = {
           is_pro: boolean | null
           location: string | null
           mobile: string | null
+          page_font: string | null
+          profile_layout: string | null
           selected_template: string | null
           updated_at: string | null
+          wallpaper_style: string | null
         }
         Insert: {
           accent_color?: string | null
           avatar_url?: string | null
+          bg_image_url?: string | null
           bio?: string | null
+          button_shape?: string | null
+          color_background?: string | null
+          color_button_text?: string | null
+          color_buttons?: string | null
+          color_page_text?: string | null
+          color_title_text?: string | null
           created_at?: string | null
           email?: string | null
           full_name: string
@@ -169,13 +186,23 @@ export type Database = {
           is_pro?: boolean | null
           location?: string | null
           mobile?: string | null
+          page_font?: string | null
+          profile_layout?: string | null
           selected_template?: string | null
           updated_at?: string | null
+          wallpaper_style?: string | null
         }
         Update: {
           accent_color?: string | null
           avatar_url?: string | null
+          bg_image_url?: string | null
           bio?: string | null
+          button_shape?: string | null
+          color_background?: string | null
+          color_button_text?: string | null
+          color_buttons?: string | null
+          color_page_text?: string | null
+          color_title_text?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string
@@ -184,8 +211,11 @@ export type Database = {
           is_pro?: boolean | null
           location?: string | null
           mobile?: string | null
+          page_font?: string | null
+          profile_layout?: string | null
           selected_template?: string | null
           updated_at?: string | null
+          wallpaper_style?: string | null
         }
         Relationships: []
       }
